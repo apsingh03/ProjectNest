@@ -1,21 +1,15 @@
 "use client";
-
-import { useState, useMemo, useEffect } from "react";
-import { X, Vote, Users, Search, Filter, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Plus } from "lucide-react";
 import ProjectCard from "./ProjectCard";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
-import SearchFilter from "./SearchFilter";
 
-import { getProjectsWithTasks } from "../utils/MockData";
-import Modal from "./Modal";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
 import NewProject from "./NewProject";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getProjectAsync,
   searchProjects,
-} from "../Redux/Slices/ProjectManagement";
+} from "../Redux/Slices/ProjectManagementSlice";
 import StatusFilter from "./StatusFilter";
 import Pagination from "./Pagination";
 
@@ -37,6 +31,8 @@ export default function Dashboard() {
     (state) => state?.project?.data?.totalPages
   );
   const isLoadingProjectRedux = !projectRedux || !projectRedux;
+
+  // console.log("projectRedux - ", projectRedux);
 
   const dispatch = useDispatch();
   const [searchInput, setsearchInput] = useState("");

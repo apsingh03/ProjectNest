@@ -7,11 +7,15 @@ import {
   Edit,
   Trash2,
   Calendar,
+  Plus,
   CheckCircle2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
-import { deleteProjectAsync } from "../Redux/Slices/ProjectManagement";
+import { deleteProjectAsync } from "../Redux/Slices/ProjectManagementSlice";
+import NewTask from "./NewTask";
+import TaskList from "./TaskList";
+import ActionsMenu from "./ActionMenu";
 
 interface Project {
   id: number;
@@ -43,17 +47,30 @@ export default function ProjectCard({
 }: ProjectCardProps) {
   const dispatch = useDispatch();
   const [showMenu, setShowMenu] = useState(false);
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const [isOpenTaskEditModal, setIsOpenTaskEditModal] = useState(false);
+  const [taskEditDetails, settaskEditDetails] = useState({
+    id: null,
+    title: null,
+    description: null,
+    status: null,
+    // dueDate: null,
+  });
 
-  const handleDelete = async (id) => {
+  const [whichTaskMenu, setwhichTaskMenu] = useState({ id: null });
+
+  const handleDeleteProject = async (id) => {
     try {
-      await dispatch(deleteProjectAsync({ id }));
+      if (window.confirm("Do you want to Delete Project ")) {
+        await dispatch(deleteProjectAsync({ id }));
+      }
     } catch (error) {
       console.log("Error - ", error);
     }
     setShowMenu(false);
   };
 
-  const handleEdit = async (id, title, description, status) => {
+  const handleEditProject = async (id, title, description, status) => {
     try {
       setIsOpenEditModal(true);
 
@@ -89,41 +106,19 @@ export default function ProjectCard({
           </div>
           <div className="relative">
             <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+              onClick={() => setwhichTaskMenu({ id: project.id })}
+              className="p-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer "
             >
               <MoreVertical className="w-4 h-4 text-gray-500" />
             </button>
-            {showMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setShowMenu(false)}
-                />
-                <div className="absolute right-0 top-8 z-20 bg-white border border-gray-200 rounded-lg shadow-lg py-1 w-32">
-                  <button
-                    onClick={() =>
-                      handleEdit(
-                        project.id,
-                        project.title,
-                        project.description,
-                        project.status
-                      )
-                    }
-                    className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center"
-                  >
-                    <Edit className="w-3 h-3 mr-2" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(project.id)}
-                    className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
-                  >
-                    <Trash2 className="w-3 h-3 mr-2" />
-                    Delete
-                  </button>
-                </div>
-              </>
+            {whichTaskMenu.id === project.id && (
+              <ActionsMenu
+                showMenu={whichTaskMenu.id === project.id}
+                setShowMenu={setwhichTaskMenu}
+                project={project}
+                handleEdit={handleEditProject}
+                handleDelete={handleDeleteProject}
+              />
             )}
           </div>
         </div>
@@ -144,9 +139,41 @@ export default function ProjectCard({
               <Calendar className="w-3 h-3 mr-1" />
               {format(new Date(dummyDate.createdAt), "MMM d, yyyy")}
             </div>
+            <div className="m-3" onClick={() => setIsOpenModal(true)}>
+              <button className="bg-blue-600 hover:bg-blue-700 text-[15px] cursor-pointer text-white font-semibold py-2 px-2 rounded">
+                Add Task
+              </button>
+            </div>
           </div>
         </div>
+
+        <div>
+          {project.projectTask && project.projectTask?.length > 0 ? (
+            <TaskList
+              tasks={project && project.projectTask}
+              isOpenTaskEditModal={isOpenTaskEditModal}
+              setIsOpenTaskEditModal={setIsOpenTaskEditModal}
+              settaskEditDetails={settaskEditDetails}
+            />
+          ) : (
+            <div className="text-center ">
+              <h6 className="text-lg font-medium text-gray-900 mb-2">
+                No Tasks found
+              </h6>
+            </div>
+          )}
+        </div>
       </div>
+
+      <NewTask
+        isOpenModal={isOpenModal}
+        setIsOpenModal={setIsOpenModal}
+        isOpenTaskEditModal={isOpenTaskEditModal}
+        setIsOpenTaskEditModal={setIsOpenTaskEditModal}
+        projectId={project?.id}
+        settaskEditDetails={settaskEditDetails}
+        taskEditDetails={taskEditDetails}
+      />
     </>
   );
 }

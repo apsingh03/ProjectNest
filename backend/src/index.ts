@@ -3,6 +3,9 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import http from "http";
 import cookieParser from "cookie-parser";
+import authRoutes from "./routes/user/AuthRoutes";
+import management from "./routes/management/ManagementRoutes";
+import taskRoutes from "./routes/task/TaskRoutes";
 
 // Load .env
 dotenv.config();
@@ -23,19 +26,17 @@ app.use(cors(corsOptions));
 // HTTP server for socket.io or other websockets
 const server = http.createServer(app);
 
+app.get("/", (req: Request, res: Response) => {
+  try {
+    res.status(200).send("Welcome to Home  Project Management Backend Server");
+  } catch (error: any) {
+    res.status(500).send({ error: error.message });
+  }
+});
 // Routes
-import authRoutes from "./routes/user/";
-import management from "./routes/management/";
 app.use("/auth", authRoutes);
 app.use("/project_management", management);
-
-// app.get("/", (req: Request, res: Response) => {
-//   try {
-//     res.status(200).send("Welcome to Project Management");
-//   } catch (error: any) {
-//     res.status(500).send({ error: error.message });
-//   }
-// });
+app.use("/project_task", taskRoutes);
 
 // Listen
 const PORT = process.env.PORT || 5000;

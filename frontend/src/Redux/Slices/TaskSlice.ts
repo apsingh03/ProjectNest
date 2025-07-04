@@ -2,82 +2,91 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const HOSTNAME = import.meta.env.VITE_BACKENDHOSTNAME;
+const clientLoggedToken = localStorage.getItem("clientLoggedToken");
 
-export const createProjectAsync = createAsyncThunk(
-  "admin/createProject",
+export const createTaskAsync = createAsyncThunk(
+  "admin/createTask",
   async ({ ...rest }) => {
     try {
+      console.log(`${HOSTNAME}/project_task/task`);
       const response = await axios.post(
-        `${HOSTNAME}/project_management/project`,
+        `${HOSTNAME}/project_task/task`,
         {
           ...rest,
         },
 
-        { withCredentials: true }
+        {
+          headers: { Authorization: `${clientLoggedToken}` },
+        }
       );
 
       return response.data;
     } catch (error) {
-      console.log("createCategoryAsync Error - ", error.response);
+      console.log("createTaskAsync Error - ", error.response);
     }
   }
 );
 
-export const getProjectAsync = createAsyncThunk(
-  "admin/getProject",
+export const getTaskAsync = createAsyncThunk(
+  "admin/getTask",
   async ({ currentPage, pageSize }) => {
     try {
       // console.log(
       //   `${HOSTNAME}/project_management/project?page=${currentPage}&pageSize=${pageSize}`
       // );
       const response = await axios.get(
-        `${HOSTNAME}/project_management/project?page=${currentPage}&pageSize=${pageSize}`,
+        `${HOSTNAME}/project_task/task`,
 
-        { withCredentials: true }
+        {
+          headers: { Authorization: `${clientLoggedToken}` },
+        }
       );
       return response.data;
     } catch (error) {
-      console.log("getCategoryAsync Error - ", error.response);
+      console.log("getTaskAsync Error - ", error.response);
     }
   }
 );
 
-export const updateProjectAsync = createAsyncThunk(
-  "admin/updateProject",
+export const updateTaskAsync = createAsyncThunk(
+  "admin/updateTask",
   async ({ id, title, description, status }) => {
     try {
       const response = await axios.put(
-        `${HOSTNAME}/project_management/project/${id}`,
+        `${HOSTNAME}/project_task/task/${id}`,
         {
           title,
           description,
           status,
         },
 
-        { withCredentials: true }
+        {
+          headers: { Authorization: `${clientLoggedToken}` },
+        }
       );
 
       return response.data;
     } catch (error) {
-      console.log("updateCategoryAsync Error - ", error.response);
+      console.log("updateTaskAsync Error - ", error.response);
     }
   }
 );
 
-export const deleteProjectAsync = createAsyncThunk(
-  "admin/deleteProject",
+export const deleteTaskAsync = createAsyncThunk(
+  "admin/deleteTask",
   async ({ id }) => {
     try {
-      console.log(`${HOSTNAME}/project_management/project/${id}`);
       const response = await axios.delete(
-        `${HOSTNAME}/project_management/project/${id}`,
+        `${HOSTNAME}/project_task/task/${id}`,
 
-        { withCredentials: true }
+        {
+          headers: { Authorization: `${clientLoggedToken}` },
+        }
       );
 
       return response.data;
     } catch (error) {
-      console.log("deleteCategoryAsync Error - ", error.response);
+      console.log("deleteTaskAsync Error - ", error.response);
     }
   }
 );
@@ -88,8 +97,8 @@ const initialState = {
   isError: false,
 };
 
-export const projectSlice = createSlice({
-  name: "project",
+export const taskSlice = createSlice({
+  name: "task",
   initialState,
   reducers: {
     searchProjects(state, action) {
@@ -117,11 +126,11 @@ export const projectSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      .addCase(createProjectAsync.pending, (state, action) => {
+      .addCase(createTaskAsync.pending, (state, action) => {
         state.isLoading = true;
       })
 
-      .addCase(createProjectAsync.fulfilled, (state, action) => {
+      .addCase(createTaskAsync.fulfilled, (state, action) => {
         state.isLoading = false;
 
         if (action.payload.msg === "success") {
@@ -130,29 +139,29 @@ export const projectSlice = createSlice({
         // console.log("payload - ", action.payload);
       })
 
-      .addCase(createProjectAsync.rejected, (state, action) => {
+      .addCase(createTaskAsync.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
       })
-      .addCase(getProjectAsync.pending, (state, action) => {
+      .addCase(getTaskAsync.pending, (state, action) => {
         state.isLoading = true;
       })
 
-      .addCase(getProjectAsync.fulfilled, (state, action) => {
+      .addCase(getTaskAsync.fulfilled, (state, action) => {
         state.isLoading = false;
         state.data = action.payload;
       })
 
-      .addCase(getProjectAsync.rejected, (state, action) => {
+      .addCase(getTaskAsync.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
       })
       // update
-      .addCase(updateProjectAsync.pending, (state, action) => {
+      .addCase(updateTaskAsync.pending, (state, action) => {
         state.isLoading = true;
       })
 
-      .addCase(updateProjectAsync.fulfilled, (state, action) => {
+      .addCase(updateTaskAsync.fulfilled, (state, action) => {
         state.isLoading = false;
 
         if (action.payload.msg === "success") {
@@ -170,16 +179,16 @@ export const projectSlice = createSlice({
         }
       })
 
-      .addCase(updateProjectAsync.rejected, (state, action) => {
+      .addCase(updateTaskAsync.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
       })
 
-      .addCase(deleteProjectAsync.pending, (state, action) => {
+      .addCase(deleteTaskAsync.pending, (state, action) => {
         state.isLoading = true;
       })
 
-      .addCase(deleteProjectAsync.fulfilled, (state, action) => {
+      .addCase(deleteTaskAsync.fulfilled, (state, action) => {
         state.isLoading = false;
 
         if (action.payload.msg === "success") {
@@ -192,12 +201,12 @@ export const projectSlice = createSlice({
         }
       })
 
-      .addCase(deleteProjectAsync.rejected, (state, action) => {
+      .addCase(deleteTaskAsync.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
       });
   },
 });
 
-export const { searchProjects, filterByStatusProjects } = projectSlice.actions;
-export default projectSlice.reducer;
+export const { searchProjects, filterByStatusProjects } = taskSlice.actions;
+export default taskSlice.reducer;

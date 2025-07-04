@@ -1,5 +1,4 @@
 // lib/slices/userAuthSlice.ts
-
 import { jwtDecode } from "jwt-decode";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
@@ -20,6 +19,7 @@ interface AuthState {
 }
 
 const HOSTNAME = import.meta.env.VITE_BACKENDHOSTNAME;
+const clientLoggedToken = localStorage.getItem("clientLoggedToken");
 
 export const createClientAsync = createAsyncThunk(
   "client/createClient",
@@ -32,15 +32,11 @@ export const createClientAsync = createAsyncThunk(
     fullName: string;
     password: string;
   }) => {
-    const response = await axios.post(
-      `${HOSTNAME}/auth/signup`,
-      {
-        email,
-        fullName,
-        password,
-      },
-      { withCredentials: true }
-    );
+    const response = await axios.post(`${HOSTNAME}/auth/signup`, {
+      email,
+      fullName,
+      password,
+    });
     return response.data;
   }
 );
@@ -48,14 +44,10 @@ export const createClientAsync = createAsyncThunk(
 export const loginClientAsync = createAsyncThunk(
   "client/loginClient",
   async ({ email, password }: { email: string; password: string }) => {
-    const response = await axios.post(
-      `${HOSTNAME}/auth/login`,
-      {
-        email,
-        password,
-      },
-      { withCredentials: true }
-    );
+    const response = await axios.post(`${HOSTNAME}/auth/login`, {
+      email,
+      password,
+    });
     return response.data;
   }
 );
@@ -64,7 +56,7 @@ export const getLoggedInfoAsync = createAsyncThunk(
   "client/getUserInfo",
   async () => {
     const response = await axios.get(`${HOSTNAME}/auth/loggedInfo/`, {
-      withCredentials: true,
+      headers: { Authorization: `${clientLoggedToken}` },
     });
     return response.data;
   }
@@ -74,7 +66,7 @@ export const getLoggedOutAsync = createAsyncThunk(
   "client/userLogout",
   async () => {
     const response = await axios.post(`${HOSTNAME}/auth/logout/`, {
-      withCredentials: true,
+      headers: { Authorization: `${clientLoggedToken}` },
     });
     return response.data;
   }
@@ -84,12 +76,32 @@ const initialState: AuthState = {
   userDetails: null,
   isLoading: false,
   isError: false,
+  loggedData: {
+    isUserLogged:
+      localStorage.getItem("clientLoggedToken") !== null
+        ? jwtDecode(localStorage.getItem("clientLoggedToken")).isUserLogged
+        : false,
+    id:
+      localStorage.getItem("clientLoggedToken") !== null
+        ? jwtDecode(localStorage.getItem("clientLoggedToken")).id
+        : null,
+    fullName:
+      localStorage.getItem("clientLoggedToken") !== null
+        ? jwtDecode(localStorage.getItem("clientLoggedToken")).fullName
+        : null,
+    email:
+      localStorage.getItem("clientLoggedToken") !== null
+        ? jwtDecode(localStorage.getItem("clientLoggedToken")).email
+        : null,
+  },
 };
 
 export const userAuthSlice = createSlice({
   name: "clientAuth",
   initialState,
-  reducers: {},
+  reducers: {
+    logOut: {},
+  },
   extraReducers: (builder) => {
     builder
 

@@ -1,11 +1,14 @@
 "use client";
-
+import Cookies from "js-cookie";
 import { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { LogIn, UserPlus } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { createClientAsync, loginClientAsync } from "../Redux/Slices/UserAuth";
+import {
+  createClientAsync,
+  loginClientAsync,
+} from "../Redux/Slices/UserAuthSlice";
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string().email("Invalid email").required("Email is required"),
@@ -78,7 +81,7 @@ export default function Authentication() {
           password: values.password,
         })
       );
-      // console.log("actionResult  - ", actionResult);
+
       if (actionResult.payload?.msg === "Incorrect Email") {
         // toast.error(actionResult.payload.msg);
         // setlogInEmailError(actionResult.payload.msg);
@@ -97,8 +100,9 @@ export default function Authentication() {
         values.email = "";
         values.password = "";
         alert(actionResult.payload?.msg);
+
         // toast.success(actionResult.payload.msg);
-        // localStorage.setItem("clientLoggedToken", actionResult.payload.token);
+        localStorage.setItem("clientLoggedToken", actionResult.payload.token);
         window.location.replace("/");
       }
 

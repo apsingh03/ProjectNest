@@ -5,51 +5,56 @@ import Modal from "./Modal";
 import { useDispatch } from "react-redux";
 
 import { createTaskAsync, updateTaskAsync } from "../Redux/Slices/TaskSlice";
-import {
-  createProjectAsync,
-  updateProjectAsync,
-} from "../Redux/Slices/ProjectManagementSlice";
 
-interface ProjectEditDetails {
+interface TaskEditDetails {
   id: string | null;
   title: string | null;
   description: string | null;
   status: string | null;
+  dueDate: string | null;
 }
 
-interface NewProjectProps {
+interface NewTaskProps {
   isOpenModal: boolean;
+  isOpenTaskEditModal: boolean;
   setIsOpenModal: (isOpen: boolean) => void;
-  isOpenEditModal: boolean;
-  setIsOpenEditModal: (isOpen: boolean) => void;
-  projectEditDetails: ProjectEditDetails;
+  setIsOpenTaskEditModal: (isOpen: boolean) => void;
+  projectId: number;
+  taskEditDetails: TaskEditDetails;
 }
 
-const NewProject = ({
+const NewTask = ({
   isOpenModal,
   setIsOpenModal,
-  isOpenEditModal,
-  setIsOpenEditModal,
-  projectEditDetails,
-}: NewProjectProps) => {
+  isOpenTaskEditModal,
+  setIsOpenTaskEditModal,
+  projectId,
+  taskEditDetails,
+}: NewTaskProps) => {
   const dispatch = useDispatch();
 
-  const ProjectSchema = Yup.object().shape({
+  const TaskSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
     description: Yup.string().required("Description is required"),
     status: Yup.string().required("Status is required"),
+    dueDate: Yup.string().required("Date is required"),
   });
 
   const handleSubmit = async (values: any, { setSubmitting }) => {
     // console.log("SUbmit ", values);
     setSubmitting(true);
+    // console.log(projectId, values);
     const res = await dispatch(
-      createProjectAsync({
+      createTaskAsync({
         title: values?.title,
         description: values?.description,
         status: values?.status,
+        projectId: projectId,
+        dueDate: values.dueDate,
       })
     );
+
+    // console.log("res - ", res);
 
     const { msg } = res?.payload;
     if (msg && msg === "Name Already Exist") {
@@ -62,8 +67,8 @@ const NewProject = ({
       values.title = "";
       values.description = "";
       values.status = "";
+      values.dueDate = "";
     }
-
     setIsOpenModal(false);
     setSubmitting(false);
   };
@@ -72,11 +77,12 @@ const NewProject = ({
     // console.log("SUbmit ", values);
     setSubmitting(true);
     const res = await dispatch(
-      updateProjectAsync({
-        id: projectEditDetails?.id,
+      updateTaskAsync({
+        id: taskEditDetails?.id,
         title: values?.title,
         description: values?.description,
         status: values?.status,
+        dueDate: values.dueDate,
       })
     );
 
@@ -98,39 +104,41 @@ const NewProject = ({
   };
 
   function initialValues() {
-    if (isOpenEditModal) {
+    if (isOpenTaskEditModal) {
       return {
-        title: projectEditDetails.title,
-        description: projectEditDetails.description,
-        status: projectEditDetails.status,
+        title: taskEditDetails.title,
+        description: taskEditDetails.description,
+        status: taskEditDetails.status,
+        dueDate: taskEditDetails.dueDate,
       };
     } else {
       return {
         title: "",
         description: "",
-        status: "active",
+        status: "",
+        dueDate: "",
       };
     }
   }
 
   return (
     <Modal
-      isOpenModal={isOpenModal || isOpenEditModal}
+      isOpenModal={isOpenModal || isOpenTaskEditModal}
       setIsOpenModal={setIsOpenModal}
-      setIsOpenEditModal={setIsOpenEditModal}
-      title={isOpenEditModal ? "Edit Project" : "Create New Project"}
+      setIsOpenEditModal={setIsOpenTaskEditModal}
+      title={isOpenTaskEditModal ? "Edit Task" : "Create New Task"}
     >
       <Formik
         initialValues={initialValues()}
-        validationSchema={ProjectSchema}
-        onSubmit={isOpenEditModal ? handleEdit : handleSubmit}
+        validationSchema={TaskSchema}
+        onSubmit={isOpenTaskEditModal ? handleEdit : handleSubmit}
         enableReinitialize
       >
         {({ isSubmitting }) => (
           <Form className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Project Title
+                Task Title
               </label>
               <Field
                 name="title"
@@ -147,7 +155,7 @@ const NewProject = ({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description
+                Task Description
               </label>
               <Field
                 name="description"
@@ -163,26 +171,42 @@ const NewProject = ({
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Status
-              </label>
-              <Field
-                name="status"
-                as="select"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white"
-              >
-                <option value="active">Active</option>
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-              </Field>
-              <ErrorMessage
-                name="status"
-                component="div"
-                className="text-red-600 text-sm mt-1"
-              />
+            <div className="flex flex-row justify-between items-center ">
+              <div className="flex-1">
+                <label className=" block text-sm font-medium text-gray-700 mb-2">
+                  Due Date
+                </label>
+                <Field
+                  type="date"
+                  name="dueDate"
+                  className="border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <ErrorMessage
+                  name="dueDate"
+                  component="div"
+                  className="text-red-600 text-sm mt-1"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Task Status
+                </label>
+                <Field
+                  name="status"
+                  as="select"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white"
+                >
+                  <option value="Todo">Todo</option>
+                  <option value="In-Progress">In-Progress</option>
+                  <option value="Done">Done</option>
+                </Field>
+                <ErrorMessage
+                  name="status"
+                  component="div"
+                  className="text-red-600 text-sm mt-1"
+                />
+              </div>
             </div>
-
             <div className="flex space-x-3 pt-4">
               <button
                 type="submit"
@@ -191,9 +215,9 @@ const NewProject = ({
               >
                 {isSubmitting
                   ? "Saving..."
-                  : isOpenEditModal
-                  ? "Edit Project"
-                  : "Create Project"}
+                  : isOpenTaskEditModal
+                  ? "Edit Task"
+                  : "Create Task"}
               </button>
             </div>
           </Form>
@@ -203,4 +227,4 @@ const NewProject = ({
   );
 };
 
-export default NewProject;
+export default NewTask;

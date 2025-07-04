@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Filter } from "lucide-react";
-import { filterByStatusProjects } from "../Redux/Slices/ProjectManagement";
+import { filterByStatusProjects } from "../Redux/Slices/ProjectManagementSlice";
 import { useDispatch } from "react-redux";
 
 export default function StatusFilter({ value, onChange }) {

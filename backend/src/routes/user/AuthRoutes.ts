@@ -17,6 +17,5 @@ router.get("/", (req: Request, res: Response) => {
 router.post("/signup", clientSignUp);
 router.post("/login", clientLogIn);
 router.get("/loggedInfo", authenticateUser, clientLoggedInfo);
-router.post("/logout", clientLogout);
 
 export default router;

@@ -1,14 +1,16 @@
 // lib/store.ts
 
 import { configureStore } from "@reduxjs/toolkit";
-import userAuthSlice from "./Slices/UserAuth";
-import projectSlice from "./Slices/ProjectManagement";
+import userAuthSlice from "./Slices/UserAuthSlice";
+import projectSlice from "./Slices/ProjectManagementSlice";
+import taskSlice from "./Slices/TaskSlice";
 
 // 1️⃣ Create the store
 export const store = configureStore({
   reducer: {
     client_auth: userAuthSlice,
     project: projectSlice,
+    task: taskSlice,
   },
 });
 

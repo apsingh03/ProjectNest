@@ -5,6 +5,7 @@ import {
   initProjectManagementModel,
   ProjectManagement,
 } from "./Management/ProjectManagement";
+import { initTaskModel, Task } from "./Task/Task";
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ const sequelize = new Sequelize(
 // ✅ Init all models
 initUserAuthModel(sequelize);
 initProjectManagementModel(sequelize);
+initTaskModel(sequelize);
 
 UserAuth.hasMany(ProjectManagement, {
   foreignKey: "devId",
@@ -43,9 +45,18 @@ ProjectManagement.belongsTo(UserAuth, {
   as: "UserAuth",
 });
 
+ProjectManagement.hasMany(Task, {
+  foreignKey: "projectId",
+  as: "projectTask",
+});
+Task.belongsTo(ProjectManagement, {
+  foreignKey: "projectId",
+  as: "projectTask",
+});
+
 // sequelize.sync({ force: false }).then(() => {
 //   console.log("------------ Congratulation You are in Sync -------------- ");
 // });
 
 // ✅ Export Sequelize instance + models
-export { sequelize, Sequelize, UserAuth, ProjectManagement };
+export { sequelize, Sequelize, UserAuth, ProjectManagement, Task };

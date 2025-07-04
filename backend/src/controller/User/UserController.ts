@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserAuth } from "../../models";
-import Cookies from "js-cookie";
 
 const isProduction = process.env.NODE_ENV === "production";
 const cookieSettings = {
@@ -84,11 +83,6 @@ export const clientLogIn = async (
 
             var token = jwt.sign(userObject, process.env.JWT_SECRET_KEY);
 
-            res.cookie("token", token, {
-              ...cookieSettings,
-              maxAge: 24 * 60 * 60 * 1000,
-            });
-
             return res
               .status(200)
               .send({ msg: "Logged In Successfull", token, userObject });
@@ -133,23 +127,5 @@ export const clientLoggedInfo = async (
     return res.status(200).send({ msg: "User Logged In", userObject });
   } catch (error) {
     return res.status(500).send({ error: error.message });
-  }
-};
-
-export const clientLogout = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    // console.log("----- clientLogout");
-    res.clearCookie("token", cookieSettings);
-    console.log("----- clientLogout  ------------------ ");
-    return res.status(200).json({ msg: "Logged out successfully" });
-  } catch (error: any) {
-    console.error("Logout Error:", error);
-    return res
-      .status(500)
-      .json({ error: error.message || "Internal server error" });
   }
 };

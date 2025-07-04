@@ -5,8 +5,8 @@ import About from "./Pages/About";
 import Authentication from "./Pages/Authentication";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import { getLoggedInfoAsync } from "./Redux/Slices/UserAuth";
-
+import { getLoggedInfoAsync } from "./Redux/Slices/UserAuthSlice";
+import Cookies from "js-cookie";
 function App() {
   // const [count, setCount] = useState(0);
 
@@ -19,6 +19,8 @@ function App() {
     await dispatch(getLoggedInfoAsync());
   }
 
+  console.log("Cookie token:", Cookies.get("token"));
+  console.log("document.cookie:", document.cookie);
   useEffect(() => {
     fetch();
 
