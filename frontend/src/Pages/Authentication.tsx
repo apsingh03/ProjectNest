@@ -29,7 +29,7 @@ export default function Authentication() {
 
   const getInitialValues = () => {
     if (isLogin) {
-      return { email: "", password: "" };
+      return { email: "test@example.com", password: "Test@123" };
     } else {
       return { firstName: "", lastName: "", email: "", password: "" };
     }

@@ -17,7 +17,7 @@ router.get("/", (req: Request, res: Response) => {
 // localhost:8000/auth/signup
 router.get("/project", authenticateUser, getProject);
 router.post("/project", authenticateUser, createProject);
-router.put("/project", authenticateUser, updateProject);
-router.delete("/project", authenticateUser, deleteProject);
+router.put("/project/:id", authenticateUser, updateProject);
+router.delete("/project/:id", authenticateUser, deleteProject);
 
 export default router;

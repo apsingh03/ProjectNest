@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserAuth } from "../../models";
+import Cookies from "js-cookie";
 
 const isProduction = process.env.NODE_ENV === "production";
 const cookieSettings = {
@@ -58,7 +59,7 @@ export const clientLogIn = async (
   next: NextFunction
 ) => {
   try {
-    // console.log(" clientLogIn Req - ", req.body);
+    console.log(" ------------------   clientLogIn Req - ");
     const emailExistQuery = await UserAuth.findOne({
       where: { email: req.body.email },
     });

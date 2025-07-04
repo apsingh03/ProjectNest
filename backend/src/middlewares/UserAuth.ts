@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-
+import Cookies from "js-cookie";
 const jwt = require("jsonwebtoken");
 
 import { UserAuth } from "../models/";
@@ -14,6 +14,7 @@ export const authenticateUser = async (
     // const userId = JSON.parse(userObject).id;
     console.log("authenticateUser Starts  - ");
     const token = req.cookies.token;
+
     // console.log(token);
     const userObject = jwt.verify(token, process.env.JWT_SECRET_KEY);
     // console.log("userObject - ");
@@ -23,7 +24,7 @@ export const authenticateUser = async (
           .status(401)
           .json({ success: false, error: "User Authentication Failed" });
       } else {
-        console.log("authenticateUser --> SUCCESS  - ");
+        // console.log("authenticateUser --> SUCCESS  - ");
         req.user = userObject;
         next();
       }

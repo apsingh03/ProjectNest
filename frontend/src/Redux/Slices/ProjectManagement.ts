@@ -25,10 +25,13 @@ export const createProjectAsync = createAsyncThunk(
 
 export const getProjectAsync = createAsyncThunk(
   "admin/getProject",
-  async () => {
+  async ({ currentPage, pageSize }) => {
     try {
+      // console.log(
+      //   `${HOSTNAME}/project_management/project?page=${currentPage}&pageSize=${pageSize}`
+      // );
       const response = await axios.get(
-        `${HOSTNAME}/project_management/project`,
+        `${HOSTNAME}/project_management/project?page=${currentPage}&pageSize=${pageSize}`,
 
         { withCredentials: true }
       );
@@ -41,12 +44,14 @@ export const getProjectAsync = createAsyncThunk(
 
 export const updateProjectAsync = createAsyncThunk(
   "admin/updateProject",
-  async ({ name, id }) => {
+  async ({ id, title, description, status }) => {
     try {
-      const response = await axios.patch(
+      const response = await axios.put(
         `${HOSTNAME}/project_management/project/${id}`,
         {
-          name,
+          title,
+          description,
+          status,
         },
 
         { withCredentials: true }
@@ -63,6 +68,7 @@ export const deleteProjectAsync = createAsyncThunk(
   "admin/deleteProject",
   async ({ id }) => {
     try {
+      console.log(`${HOSTNAME}/project_management/project/${id}`);
       const response = await axios.delete(
         `${HOSTNAME}/project_management/project/${id}`,
 
@@ -85,7 +91,28 @@ const initialState = {
 export const projectSlice = createSlice({
   name: "project",
   initialState,
-  reducers: {},
+  reducers: {
+    searchProjects(state, action) {
+      const searchQuery = action?.payload;
+      const allProjects = state.data.query || [];
+      const filterByTitle = allProjects.filter((project) =>
+        project.title.toLowerCase().includes(searchQuery)
+      );
+
+      state.data.query = filterByTitle;
+    },
+
+    filterByStatusProjects(state, action) {
+      const selectedStatus = action?.payload;
+      console.log("filterByStatusProjects - ", selectedStatus);
+      const allProjects = state.data.query || [];
+      const filterByStatus = allProjects.filter((project) =>
+        project.status.toLowerCase().includes(selectedStatus)
+      );
+
+      state.data.query = filterByStatus;
+    },
+  },
 
   extraReducers: (builder) => {
     builder
@@ -172,4 +199,5 @@ export const projectSlice = createSlice({
   },
 });
 
+export const { searchProjects, filterByStatusProjects } = projectSlice.actions;
 export default projectSlice.reducer;

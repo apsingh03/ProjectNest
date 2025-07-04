@@ -7,6 +7,7 @@ interface ModalProps {
   isOpenModal: boolean;
   setIsOpenModal: (isOpen: boolean) => void;
   title?: string;
+  setIsOpenEditModal: (isOpen: boolean) => void;
 }
 
 export default function Modal({
@@ -14,6 +15,7 @@ export default function Modal({
   isOpenModal,
   setIsOpenModal,
   title,
+  setIsOpenEditModal,
 }: ModalProps) {
   if (!isOpenModal) return null;
 
@@ -28,7 +30,7 @@ export default function Modal({
             <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
           </div>
           <button
-            onClick={() => setIsOpenModal(false)}
+            onClick={() => [setIsOpenModal(false), setIsOpenEditModal(false)]}
             className="p-1 rounded hover:bg-gray-100"
           >
             <X className="w-5 h-5 text-gray-500" />

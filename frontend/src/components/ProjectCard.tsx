@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
 import { useSelector, useDispatch } from "react-redux";
-
 import {
   MoreVertical,
   Edit,
@@ -13,6 +11,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
+import { deleteProjectAsync } from "../Redux/Slices/ProjectManagement";
 
 interface Project {
   id: number;
@@ -23,29 +22,53 @@ interface Project {
   tasks?: { id: number; status: string }[];
 }
 
-interface ProjectCardProps {
-  project: Project;
+interface ProjectEditDetails {
+  id: number | null;
+  title: string | null;
+  description: string | null;
+  status: string | null;
 }
 
-export default function ProjectCard({ project }: ProjectCardProps) {
+interface ProjectCardProps {
+  project: Project;
+  setIsOpenEditModal: (isOpen: boolean) => void;
+  setprojectEditDetails: React.Dispatch<
+    React.SetStateAction<ProjectEditDetails>
+  >;
+}
+export default function ProjectCard({
+  project,
+  setIsOpenEditModal,
+  setprojectEditDetails,
+}: ProjectCardProps) {
   const dispatch = useDispatch();
   const [showMenu, setShowMenu] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const handleDelete = async () => {
+  const handleDelete = async (id) => {
+    try {
+      await dispatch(deleteProjectAsync({ id }));
+    } catch (error) {
+      console.log("Error - ", error);
+    }
     setShowMenu(false);
   };
 
-  const taskStats = project.tasks
-    ? {
-        total: project.tasks.length,
-        completed: project.tasks.filter((task) => task.status === "done")
-          .length,
-      }
-    : { total: 0, completed: 0 };
+  const handleEdit = async (id, title, description, status) => {
+    try {
+      setIsOpenEditModal(true);
 
-  const completionPercentage =
-    taskStats.total > 0 ? (taskStats.completed / taskStats.total) * 100 : 0;
+      setprojectEditDetails({
+        id,
+        title,
+        description,
+        status,
+      });
+    } catch (error) {
+      console.log("Error - ", error);
+    }
+    setShowMenu(false);
+  };
+
   const dummyDate = {
     createdAt: "2024-07-01T12:00:00Z", // ✅ ISO string
   };
@@ -79,17 +102,21 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                 />
                 <div className="absolute right-0 top-8 z-20 bg-white border border-gray-200 rounded-lg shadow-lg py-1 w-32">
                   <button
-                    onClick={() => {
-                      setIsEditModalOpen(true);
-                      setShowMenu(false);
-                    }}
+                    onClick={() =>
+                      handleEdit(
+                        project.id,
+                        project.title,
+                        project.description,
+                        project.status
+                      )
+                    }
                     className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center"
                   >
                     <Edit className="w-3 h-3 mr-2" />
                     Edit
                   </button>
                   <button
-                    onClick={handleDelete}
+                    onClick={() => handleDelete(project.id)}
                     className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
                   >
                     <Trash2 className="w-3 h-3 mr-2" />
@@ -118,26 +145,6 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               {format(new Date(dummyDate.createdAt), "MMM d, yyyy")}
             </div>
           </div>
-
-          {taskStats.total > 0 && (
-            <div>
-              <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-                <div className="flex items-center">
-                  <CheckCircle2 className="w-4 h-4 mr-1" />
-                  Tasks
-                </div>
-                <span>
-                  {taskStats.completed}/{taskStats.total}
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-primary-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${completionPercentage}%` }}
-                ></div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </>

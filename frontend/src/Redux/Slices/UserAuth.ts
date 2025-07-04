@@ -130,7 +130,7 @@ export const userAuthSlice = createSlice({
         getLoggedInfoAsync.fulfilled,
         (state, action: PayloadAction<UserDetails>) => {
           state.isLoading = false;
-          console.log("getLoggedInfoAsync - ", action.payload);
+          // console.log("getLoggedInfoAsync - ", action.payload);
           const { msg, userObject } = action.payload;
           if (msg === "User Logged In") state.userDetails = userObject;
         }

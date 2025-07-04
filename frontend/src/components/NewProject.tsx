@@ -3,21 +3,34 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Modal from "./Modal";
 import { useDispatch } from "react-redux";
-import { createProjectAsync } from "../Redux/Slices/ProjectManagement";
+import {
+  createProjectAsync,
+  updateProjectAsync,
+} from "../Redux/Slices/ProjectManagement";
+
+interface ProjectEditDetails {
+  id: string | null;
+  title: string | null;
+  description: string | null;
+  status: string | null;
+}
 
 interface NewProjectProps {
   isOpenModal: boolean;
   setIsOpenModal: (isOpen: boolean) => void;
-  title?: string;
+  isOpenEditModal: boolean;
+  setIsOpenEditModal: (isOpen: boolean) => void;
+  projectEditDetails: ProjectEditDetails;
 }
 
-const NewProject = ({ isOpenModal, setIsOpenModal }: NewProjectProps) => {
+const NewProject = ({
+  isOpenModal,
+  setIsOpenModal,
+  isOpenEditModal,
+  setIsOpenEditModal,
+  projectEditDetails,
+}: NewProjectProps) => {
   const dispatch = useDispatch();
-  const initialValues = {
-    title: "",
-    description: "",
-    status: "active",
-  };
 
   const ProjectSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
@@ -53,16 +66,62 @@ const NewProject = ({ isOpenModal, setIsOpenModal }: NewProjectProps) => {
     setSubmitting(false);
   };
 
+  const handleEdit = async (values: any, { setSubmitting }) => {
+    // console.log("SUbmit ", values);
+    setSubmitting(true);
+    const res = await dispatch(
+      updateProjectAsync({
+        id: projectEditDetails?.id,
+        title: values?.title,
+        description: values?.description,
+        status: values?.status,
+      })
+    );
+
+    const { msg } = res?.payload;
+    if (msg && msg === "Name Already Exist") {
+      alert(msg);
+      values.title = "";
+    }
+
+    if (msg && msg === "success") {
+      alert(msg);
+      values.title = "";
+      values.description = "";
+      values.status = "";
+    }
+    setIsOpenEditModal(false);
+    setIsOpenModal(false);
+    setSubmitting(false);
+  };
+
+  function initialValues() {
+    if (isOpenEditModal) {
+      return {
+        title: projectEditDetails.title,
+        description: projectEditDetails.description,
+        status: projectEditDetails.status,
+      };
+    } else {
+      return {
+        title: "",
+        description: "",
+        status: "active",
+      };
+    }
+  }
+
   return (
     <Modal
-      isOpenModal={isOpenModal}
+      isOpenModal={isOpenModal || isOpenEditModal}
       setIsOpenModal={setIsOpenModal}
-      title="Create New Project"
+      setIsOpenEditModal={setIsOpenEditModal}
+      title={isOpenEditModal ? "Edit Project" : "Create New Project"}
     >
       <Formik
-        initialValues={initialValues}
+        initialValues={initialValues()}
         validationSchema={ProjectSchema}
-        onSubmit={handleSubmit}
+        onSubmit={isOpenEditModal ? handleEdit : handleSubmit}
         enableReinitialize
       >
         {({ isSubmitting }) => (
@@ -128,7 +187,11 @@ const NewProject = ({ isOpenModal, setIsOpenModal }: NewProjectProps) => {
                 disabled={isSubmitting}
                 className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
               >
-                {isSubmitting ? "Saving..." : "Create Project"}
+                {isSubmitting
+                  ? "Saving..."
+                  : isOpenEditModal
+                  ? "Edit Project"
+                  : "Create Project"}
               </button>
             </div>
           </Form>
