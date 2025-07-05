@@ -42,7 +42,6 @@ export const initTaskModel = (sequelize: Sequelize) => {
       title: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
       },
       description: {
         type: DataTypes.TEXT("long"),

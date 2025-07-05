@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Search, Plus } from "lucide-react";
 import ProjectCard from "./ProjectCard";
-import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import Skeleton from "react-loading-skeleton";
 
 import NewProject from "./NewProject";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,7 +14,7 @@ import StatusFilter from "./StatusFilter";
 import Pagination from "./Pagination";
 
 export default function Dashboard() {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  // const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [status, setStatus] = useState("");
 
   const [isOpenModal, setIsOpenModal] = useState(false);
@@ -27,12 +27,12 @@ export default function Dashboard() {
   });
 
   const projectRedux = useSelector((state) => state?.project?.data?.query);
+  // console.log("projectRedux - ", projectRedux);
   const totalPagesRedux = useSelector(
     (state) => state?.project?.data?.totalPages
   );
-  const isLoadingProjectRedux = !projectRedux || !projectRedux;
 
-  // console.log("projectRedux - ", projectRedux);
+  const isLoadingProjectRedux = !projectRedux || !projectRedux;
 
   const dispatch = useDispatch();
   const [searchInput, setsearchInput] = useState("");
@@ -103,9 +103,9 @@ export default function Dashboard() {
 
         {isLoadingProjectRedux ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {["", "", "", "", "", "", ""].map((_, idx) => (
-                <Skeleton key={idx} width={"100%"} height={"180px"} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+              {["", "", "", ""].map((_, idx) => (
+                <Skeleton key={idx} width={"100%"} height={"250px"} />
               ))}
             </div>
           </>
@@ -122,7 +122,7 @@ export default function Dashboard() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             {projectRedux.map((project) => (
               <ProjectCard
                 key={project.id}

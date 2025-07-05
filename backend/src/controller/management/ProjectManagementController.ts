@@ -1,15 +1,18 @@
-import { sequelize, Sequelize, Task, UserAuth } from "../../models";
+import {
+  ProjectManagement,
+  sequelize,
+  Sequelize,
+  Task,
+  UserAuth,
+} from "../../models";
 
-export const createTask = async (req: Request, res: Response) => {
+export const createProject = async (req: Request, res: Response) => {
   const t = await sequelize.transaction();
   try {
-    // 	id	title	description	status	dueDate	createdAt	updatedAt	devId	projectId
-
     const devId = req?.user?.id;
+    const payload = { ...req.body, devId };
 
-    const { title, description, status, dueDate, projectId } = req.body;
-
-    const nameAlreadyExist = await Task.findOne({
+    const nameAlreadyExist = await ProjectManagement.findOne({
       where: { title: req.body.title, devId },
       transaction: t,
     });
@@ -18,22 +21,13 @@ export const createTask = async (req: Request, res: Response) => {
       await t.rollback();
       return res.status(200).send({ msg: "Name Already Exist" });
     } else {
-      // console.log("Req.body - ", req.body);
-      const createQuery = await Task.create(
-        {
-          title: title,
-          description: description,
-          status: status,
-          dueDate: dueDate,
-          devId: devId,
-          projectId: projectId,
-        },
-        {
-          transaction: t,
-        }
-      );
-      const updatedQuery = await Task.findOne({
+      console.log("createProject Req.body - ", req.body);
+      const createQuery = await ProjectManagement.create(payload, {
+        transaction: t,
+      });
+      const updatedQuery = await ProjectManagement.findOne({
         where: { id: createQuery.id },
+        order: [["id", "Asc"]],
         transaction: t,
       });
       await t.commit();
@@ -46,23 +40,32 @@ export const createTask = async (req: Request, res: Response) => {
   }
 };
 
-export const getTask = async (req: Request, res: Response) => {
+export const getProject = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page);
     const itemsPerPage = parseInt(req.query.pageSize);
 
     const devId = req?.user?.id;
-    const query = await Task.findAndCountAll({
+    const query = await ProjectManagement.findAndCountAll({
       attributes: {
         exclude: ["createdAt"],
       },
-      include: {
-        model: UserAuth,
-        as: "UserAuth",
-        attributes: {
-          exclude: ["updatedAt", "password"],
+      include: [
+        {
+          model: UserAuth,
+          as: "UserAuth",
+          attributes: {
+            exclude: ["updatedAt", "password"],
+          },
         },
-      },
+        {
+          model: Task,
+          as: "projectTask",
+          required: false,
+          attributes: { exclude: ["updatedAt", "password"] },
+          where: { devId: devId },
+        },
+      ],
       where: { devId: devId },
       offset: (page - 1) * itemsPerPage,
       limit: itemsPerPage,
@@ -79,14 +82,14 @@ export const getTask = async (req: Request, res: Response) => {
   }
 };
 
-export const updateTask = async (req: Request, res: Response) => {
+export const updateProject = async (req: Request, res: Response) => {
   const t = await sequelize.transaction();
   try {
     // console.log("----------- updateProject");
     const devId = req?.user?.id;
-    const { title, description, status, dueDate } = req.body;
+    const { title, description, status } = req.body;
     // console.log("-----------> ",  title, description, status);
-    const nameAlreadyExist = await Task.findOne({
+    const nameAlreadyExist = await ProjectManagement.findOne({
       where: { title: title, id: req.params.id },
       transaction: t,
     });
@@ -95,12 +98,11 @@ export const updateTask = async (req: Request, res: Response) => {
       await t.rollback();
       return res.status(200).send({ msg: "Name Already Exist" });
     } else {
-      const [updated] = await Task.update(
+      const [updated] = await ProjectManagement.update(
         {
           title,
           description,
           status,
-          dueDate,
           updatedAt: new Date(),
         },
         {
@@ -113,7 +115,7 @@ export const updateTask = async (req: Request, res: Response) => {
       if (updated) {
         await t.commit();
         // Fetch the updated record
-        const query = await Task.findOne({
+        const query = await ProjectManagement.findOne({
           where: { id: req.params.id, devId: devId },
         });
 
@@ -129,15 +131,15 @@ export const updateTask = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteTask = async (req: Request, res: Response) => {
+export const deleteProject = async (req: Request, res: Response) => {
   const t = await sequelize.transaction();
   try {
     const devId = req?.user?.id;
+    // console.log("Delete req  devId ", devId);
+    // console.log("params - ", req.params);
+    // console.log("query - ", req.query);
 
-    console.log("Delete req  devId ", devId);
-    console.log("params - ", req.params.id);
-
-    const query = await Task.destroy({
+    const query = await ProjectManagement.destroy({
       where: { id: req.params.id, devId },
       transaction: t,
     });

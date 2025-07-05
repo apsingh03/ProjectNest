@@ -1,12 +1,18 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
+import {
+  addTaskToProject,
+  deleteTaskFromProject,
+  updateTaskFromProject,
+} from "./ProjectManagementSlice";
+
 const HOSTNAME = import.meta.env.VITE_BACKENDHOSTNAME;
 const clientLoggedToken = localStorage.getItem("clientLoggedToken");
 
 export const createTaskAsync = createAsyncThunk(
   "admin/createTask",
-  async ({ ...rest }) => {
+  async ({ ...rest }, { dispatch }) => {
     try {
       console.log(`${HOSTNAME}/project_task/task`);
       const response = await axios.post(
@@ -20,9 +26,13 @@ export const createTaskAsync = createAsyncThunk(
         }
       );
 
+      if (response?.data && response?.data.msg === "success") {
+        dispatch(addTaskToProject(response?.data?.query));
+      }
+
       return response.data;
     } catch (error) {
-      console.log("createTaskAsync Error - ", error.response);
+      console.log("createTaskAsync Error - ", error);
     }
   }
 );
@@ -50,7 +60,7 @@ export const getTaskAsync = createAsyncThunk(
 
 export const updateTaskAsync = createAsyncThunk(
   "admin/updateTask",
-  async ({ id, title, description, status }) => {
+  async ({ id, title, description, status }, { dispatch }) => {
     try {
       const response = await axios.put(
         `${HOSTNAME}/project_task/task/${id}`,
@@ -65,6 +75,10 @@ export const updateTaskAsync = createAsyncThunk(
         }
       );
 
+      if (response?.data && response?.data.msg === "success") {
+        dispatch(updateTaskFromProject(response?.data));
+      }
+
       return response.data;
     } catch (error) {
       console.log("updateTaskAsync Error - ", error.response);
@@ -74,15 +88,19 @@ export const updateTaskAsync = createAsyncThunk(
 
 export const deleteTaskAsync = createAsyncThunk(
   "admin/deleteTask",
-  async ({ id }) => {
+  async ({ id, projectId }, { dispatch }) => {
     try {
       const response = await axios.delete(
-        `${HOSTNAME}/project_task/task/${id}`,
+        `${HOSTNAME}/project_task/task/${id}/${projectId}/`,
 
         {
           headers: { Authorization: `${clientLoggedToken}` },
         }
       );
+
+      if (response?.data && response?.data.msg === "success") {
+        dispatch(deleteTaskFromProject(response?.data));
+      }
 
       return response.data;
     } catch (error) {
@@ -132,11 +150,6 @@ export const taskSlice = createSlice({
 
       .addCase(createTaskAsync.fulfilled, (state, action) => {
         state.isLoading = false;
-
-        if (action.payload.msg === "success") {
-          state.data.query.unshift(action.payload.query);
-        }
-        // console.log("payload - ", action.payload);
       })
 
       .addCase(createTaskAsync.rejected, (state, action) => {
@@ -163,20 +176,6 @@ export const taskSlice = createSlice({
 
       .addCase(updateTaskAsync.fulfilled, (state, action) => {
         state.isLoading = false;
-
-        if (action.payload.msg === "success") {
-          const { id } = action.meta.arg;
-          const findIndex = state.data.query.findIndex((data) => {
-            return data.id === id;
-          });
-          console.log("payload - ", action.payload.query);
-          // Ensure the findIndex is valid
-          if (findIndex !== -1) {
-            state.data.query[findIndex].name = action.payload.query.name;
-          } else {
-            console.error("ID not found in the query array");
-          }
-        }
       })
 
       .addCase(updateTaskAsync.rejected, (state, action) => {
@@ -190,15 +189,6 @@ export const taskSlice = createSlice({
 
       .addCase(deleteTaskAsync.fulfilled, (state, action) => {
         state.isLoading = false;
-
-        if (action.payload.msg === "success") {
-          const { id } = action.meta.arg;
-          const findIndex = state.data.query.findIndex((data) => {
-            return data.id === id;
-          });
-
-          state.data.query.splice(findIndex, 1);
-        }
       })
 
       .addCase(deleteTaskAsync.rejected, (state, action) => {

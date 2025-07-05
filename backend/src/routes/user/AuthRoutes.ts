@@ -5,7 +5,7 @@ import {
   clientLoggedInfo,
   clientLogout,
 } from "../../controller/User/UserController";
-import { authenticateUser } from "../../middlewares/UserAuth";
+import { authenticateUser } from "../../middlewares/UserAuthMiddleware";
 const router = Router();
 
 // Example route

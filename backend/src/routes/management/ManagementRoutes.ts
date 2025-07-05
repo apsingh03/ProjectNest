@@ -1,12 +1,12 @@
 import { Router, Request, Response } from "express";
 
-import { authenticateUser } from "../../middlewares/UserAuth";
+import { authenticateUser } from "../../middlewares/UserAuthMiddleware";
 import {
   createProject,
   deleteProject,
   getProject,
   updateProject,
-} from "../../controller/management/ProjectManagement";
+} from "../../controller/management/ProjectManagementController";
 const router = Router();
 
 // Example route

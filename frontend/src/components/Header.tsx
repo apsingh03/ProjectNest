@@ -20,22 +20,30 @@ const Header = () => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <div className="flex items-center text-sm text-gray-700">
-              <User className="w-4 h-4 mr-2" />{" "}
-              {userLoggedData && userLoggedData?.email}
-              <span className="font-medium"></span>
-            </div>
-            {userLoggedData && userLoggedData && (
-              <button
-                className="flex items-center text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
-                onClick={() => [
-                  localStorage.removeItem("clientLoggedToken"),
-                  window.location.replace("/"),
-                ]}
-              >
-                <LogOut className="w-4 h-4 mr-1" />
-                <span className="text-sm">Logout</span>
-              </button>
+            {userLoggedData?.email && userLoggedData?.email ? (
+              <>
+                <div className="flex items-center text-sm text-gray-700">
+                  <User className="w-4 h-4 mr-2" />{" "}
+                  {userLoggedData && userLoggedData?.email}
+                  <span className="font-medium"></span>
+                </div>
+                <button
+                  className="flex items-center text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+                  onClick={() => [
+                    localStorage.removeItem("clientLoggedToken"),
+                    window.location.replace("/"),
+                  ]}
+                >
+                  <LogOut className="w-4 h-4 mr-1" />
+                  <span className="text-sm">Logout</span>
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center text-sm text-gray-700">
+                <Link to="/auth" className="text-lg">
+                  LogIn
+                </Link>
+              </div>
             )}
           </div>
         </div>

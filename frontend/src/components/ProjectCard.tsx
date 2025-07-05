@@ -89,23 +89,32 @@ export default function ProjectCard({
   const dummyDate = {
     createdAt: "2024-07-01T12:00:00Z", // ✅ ISO string
   };
+
+  // console.log("project", project);
   return (
     <>
       <div className=" p-6 hover:shadow-lg transition-shadow duration-200  bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden ">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <Link to={`/projects/${project.id}`} className="group">
-              <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors cursor-pointer">
-                {project.title}
+              <h3
+                className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors cursor-pointer"
+                title="Project Title"
+              >
+                {project.id} {project.title}
               </h3>
             </Link>
 
-            <p className="text-gray-600 text-sm mt-1 line-clamp-2">
+            <p
+              className="text-gray-600 text-sm mt-1 line-clamp-2"
+              title="Project Description"
+            >
               {project.description}
             </p>
           </div>
           <div className="relative">
             <button
+              title="Project Menu"
               onClick={() => setwhichTaskMenu({ id: project.id })}
               className="p-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer "
             >
@@ -126,6 +135,7 @@ export default function ProjectCard({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span
+              title="Project Status"
               className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold ${
                 project.status === "active"
                   ? "bg-green-100 text-green-800"
@@ -135,12 +145,18 @@ export default function ProjectCard({
               {project.status === "active" ? "Active" : "Completed"}
             </span>
 
-            <div className="flex items-center text-xs text-gray-500">
+            <div
+              className="flex items-center text-xs text-gray-500"
+              title="Project Date"
+            >
               <Calendar className="w-3 h-3 mr-1" />
               {format(new Date(dummyDate.createdAt), "MMM d, yyyy")}
             </div>
             <div className="m-3" onClick={() => setIsOpenModal(true)}>
-              <button className="bg-blue-600 hover:bg-blue-700 text-[15px] cursor-pointer text-white font-semibold py-2 px-2 rounded">
+              <button
+                className="bg-blue-600 hover:bg-blue-700 text-[15px] cursor-pointer text-white font-semibold py-2 px-2 rounded"
+                title="Add Task"
+              >
                 Add Task
               </button>
             </div>

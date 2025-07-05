@@ -3,7 +3,7 @@ import { Edit, Trash2 } from "lucide-react";
 
 interface ActionsMenuProps {
   showMenu: boolean;
-  setShowMenu: (show: boolean) => void;
+  setShowMenu: (show: { id: number | null }) => void;
   project: {
     id: number;
     title: string;

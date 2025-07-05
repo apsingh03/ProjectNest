@@ -4,8 +4,8 @@ import dotenv from "dotenv";
 import {
   initProjectManagementModel,
   ProjectManagement,
-} from "./Management/ProjectManagement";
-import { initTaskModel, Task } from "./Task/Task";
+} from "./Management/ProjectManagementModel";
+import { initTaskModel, Task } from "./Task/TaskModel";
 
 dotenv.config();
 
@@ -54,9 +54,11 @@ Task.belongsTo(ProjectManagement, {
   as: "projectTask",
 });
 
-// sequelize.sync({ force: false }).then(() => {
-//   console.log("------------ Congratulation You are in Sync -------------- ");
-// });
+if (process.env.NODE_ENV === "production") {
+  sequelize.sync({ force: false }).then(() => {
+    console.log("------------ Congratulation You are in Sync -------------- ");
+  });
+}
 
 // ✅ Export Sequelize instance + models
 export { sequelize, Sequelize, UserAuth, ProjectManagement, Task };

@@ -36,12 +36,14 @@ const TaskList: React.FC<TaskListProps> = ({
 
   const [whichTaskMenu, setwhichTaskMenu] = useState({ id: null });
 
+  const [selectedProjectId, setselectedProjectId] = useState(null);
+
   const dispatch = useDispatch();
 
   const handleDeleteTask = async (id) => {
     try {
       if (window.confirm("Do you want to Delete Task ")) {
-        await dispatch(deleteTaskAsync({ id }));
+        await dispatch(deleteTaskAsync({ id, projectId: selectedProjectId }));
       }
     } catch (error) {
       console.log("Error - ", error);
@@ -67,16 +69,19 @@ const TaskList: React.FC<TaskListProps> = ({
 
   return (
     <div className="max-w-3xl mx-auto ">
-      <h6 className="text-2xl font-bold mb-4">Tasks</h6>
-      <ul className="space-y-4">
+      <h6 className="text-xl font-bold mb-4">Tasks</h6>
+      <ul className="space-y-4 h-[180px] overflow-scroll ">
         {tasks &&
           tasks.map((task) => (
             <li
               key={task.id}
-              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition"
+              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition cursor-pointer "
             >
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-semibold text-gray-800">
+                <h3
+                  className="text-lg font-semibold text-gray-800"
+                  title="Task Title"
+                >
                   {task.title}
                 </h3>
                 <span
@@ -87,13 +92,18 @@ const TaskList: React.FC<TaskListProps> = ({
                       ? "bg-yellow-100 text-yellow-800"
                       : "bg-gray-200 text-gray-800"
                   }`}
+                  title="Task Status"
                 >
                   {task.status}
                 </span>
                 <div className="relative">
                   <button
-                    onClick={() => setwhichTaskMenu({ id: task.id })}
+                    onClick={() => [
+                      setwhichTaskMenu({ id: task.id }),
+                      setselectedProjectId(task.projectId),
+                    ]}
                     className="p-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer "
+                    title="Menu Button"
                   >
                     <MoreVertical className="w-4 h-4 text-gray-500" />
                   </button>
@@ -108,8 +118,10 @@ const TaskList: React.FC<TaskListProps> = ({
                   )}
                 </div>
               </div>
-              {/* <p className="text-gray-600 mb-2">{task.description}</p> */}
-              <p className="text-sm text-gray-500">
+              <p className="text-gray-600 mb-2" title="Task Description">
+                {task.description}
+              </p>
+              <p className="text-sm text-gray-500" title="Task Due Date">
                 Due:{" "}
                 {format(new Date(task.dueDate), "MMM d, yyyy") || "No due date"}
               </p>
