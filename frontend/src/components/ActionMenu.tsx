@@ -1,20 +1,23 @@
 import React from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { Edit, Trash2 } from "lucide-react";
 
 interface ActionsMenuProps {
   showMenu: boolean;
-  setShowMenu: (show: { id: number | null }) => void;
+  setShowMenu: Dispatch<SetStateAction<{ id: number | null }>>;
   project: {
     id: number;
     title: string;
     description: string;
     status: string;
+    dueDate?: string;
   };
   handleEdit: (
     id: number,
     title: string,
     description: string,
-    status: string
+    status: string,
+    dueDate?: string
   ) => void;
   handleDelete: (id: number) => void;
 }
@@ -43,7 +46,8 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
               project.id,
               project.title,
               project.description,
-              project.status
+              project.status,
+              project.dueDate 
             )
           }
           className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center cursor-pointer "

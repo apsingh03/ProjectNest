@@ -1,32 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import {
-  MoreVertical,
-  Edit,
-  Trash2,
-  Calendar,
-  Plus,
-  CheckCircle2,
-} from "lucide-react";
+
+import { MoreVertical, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { deleteProjectAsync } from "../Redux/Slices/ProjectManagementSlice";
 import NewTask from "./NewTask";
 import TaskList from "./TaskList";
 import ActionsMenu from "./ActionMenu";
+import { useAppDispatch } from "../Hooks/hooks";
+import type { Task, TaskEditDetails } from "../utils/types";
 
 interface Project {
   id: number;
   title: string;
   description: string;
-  status: "active" | "completed";
-  createdAt: string;
+  status: string;
+  createdAt?: string;
   tasks?: { id: number; status: string }[];
+  projectTask?: Task[];
 }
 
-interface ProjectEditDetails {
+export interface ProjectEditDetailsPropTypes {
   id: number | null;
   title: string | null;
   description: string | null;
@@ -37,7 +33,7 @@ interface ProjectCardProps {
   project: Project;
   setIsOpenEditModal: (isOpen: boolean) => void;
   setprojectEditDetails: React.Dispatch<
-    React.SetStateAction<ProjectEditDetails>
+    React.SetStateAction<ProjectEditDetailsPropTypes>
   >;
 }
 export default function ProjectCard({
@@ -45,21 +41,23 @@ export default function ProjectCard({
   setIsOpenEditModal,
   setprojectEditDetails,
 }: ProjectCardProps) {
-  const dispatch = useDispatch();
-  const [showMenu, setShowMenu] = useState(false);
+  const dispatch = useAppDispatch();
+  const [_showMenu, setShowMenu] = useState(false);
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [isOpenTaskEditModal, setIsOpenTaskEditModal] = useState(false);
-  const [taskEditDetails, settaskEditDetails] = useState({
+  const [taskEditDetails, settaskEditDetails] = useState<TaskEditDetails>({
     id: null,
     title: null,
     description: null,
     status: null,
-    // dueDate: null,
+    dueDate: null,
   });
 
-  const [whichTaskMenu, setwhichTaskMenu] = useState({ id: null });
+  const [whichTaskMenu, setwhichTaskMenu] = useState<{ id: number | null }>({
+    id: null,
+  });
 
-  const handleDeleteProject = async (id) => {
+  const handleDeleteProject = async (id: number) => {
     try {
       if (window.confirm("Do you want to Delete Project ")) {
         await dispatch(deleteProjectAsync({ id }));
@@ -70,7 +68,12 @@ export default function ProjectCard({
     setShowMenu(false);
   };
 
-  const handleEditProject = async (id, title, description, status) => {
+  const handleEditProject = async (
+    id: number,
+    title: string,
+    description: string,
+    status: string
+  ): Promise<void> => {
     try {
       setIsOpenEditModal(true);
 
@@ -83,6 +86,7 @@ export default function ProjectCard({
     } catch (error) {
       console.log("Error - ", error);
     }
+
     setShowMenu(false);
   };
 
@@ -106,12 +110,13 @@ export default function ProjectCard({
             </Link>
 
             <p
-              className="text-gray-600 text-sm mt-1 line-clamp-2"
+              className="text-gray-600 text-sm mt-1 line-clamp-3"
               title="Project Description"
             >
               {project.description}
             </p>
           </div>
+          {/* TO SHOW EDIT DELETE MENU ON PROJECT CARD */}
           <div className="relative">
             <button
               title="Project Menu"
@@ -120,6 +125,7 @@ export default function ProjectCard({
             >
               <MoreVertical className="w-4 h-4 text-gray-500" />
             </button>
+
             {whichTaskMenu.id === project.id && (
               <ActionsMenu
                 showMenu={whichTaskMenu.id === project.id}
@@ -162,12 +168,12 @@ export default function ProjectCard({
             </div>
           </div>
         </div>
-
+        {/* TO SHOW TASKS UNDER PROJECT CARD */}
         <div>
           {project.projectTask && project.projectTask?.length > 0 ? (
             <TaskList
               tasks={project && project.projectTask}
-              isOpenTaskEditModal={isOpenTaskEditModal}
+              // isOpenTaskEditModal={isOpenTaskEditModal}
               setIsOpenTaskEditModal={setIsOpenTaskEditModal}
               settaskEditDetails={settaskEditDetails}
             />
@@ -180,15 +186,15 @@ export default function ProjectCard({
           )}
         </div>
       </div>
-
+      {/* MODAL - To Create and Edit a TASK Modal Will Open */}
       <NewTask
         isOpenModal={isOpenModal}
         setIsOpenModal={setIsOpenModal}
         isOpenTaskEditModal={isOpenTaskEditModal}
         setIsOpenTaskEditModal={setIsOpenTaskEditModal}
         projectId={project?.id}
-        settaskEditDetails={settaskEditDetails}
         taskEditDetails={taskEditDetails}
+        setIsOpenEditModal={setIsOpenEditModal}
       />
     </>
   );

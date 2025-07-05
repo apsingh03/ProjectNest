@@ -1,17 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Search, Plus } from "lucide-react";
-import ProjectCard from "./ProjectCard";
+import { Plus } from "lucide-react";
+import ProjectCard, { type ProjectEditDetailsPropTypes } from "./ProjectCard";
 import Skeleton from "react-loading-skeleton";
 
 import NewProject from "./NewProject";
-import { useDispatch, useSelector } from "react-redux";
+
 import {
   getProjectAsync,
   searchProjects,
 } from "../Redux/Slices/ProjectManagementSlice";
-import StatusFilter from "./StatusFilter";
+// import StatusFilter from "./StatusFilter";
 import Pagination from "./Pagination";
+import { useAppDispatch, useAppSelector } from "../Hooks/hooks";
+import SearchFilterBar from "./SearchFilterBar";
 
 export default function Dashboard() {
   // const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -19,22 +21,23 @@ export default function Dashboard() {
 
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
-  const [projectEditDetails, setprojectEditDetails] = useState({
-    id: null,
-    title: null,
-    description: null,
-    status: null,
-  });
+  const [projectEditDetails, setprojectEditDetails] =
+    useState<ProjectEditDetailsPropTypes>({
+      id: null,
+      title: null,
+      description: null,
+      status: null,
+    });
 
-  const projectRedux = useSelector((state) => state?.project?.data?.query);
-  // console.log("projectRedux - ", projectRedux);
-  const totalPagesRedux = useSelector(
+  const projectRedux = useAppSelector((state) => state?.project?.data?.query);
+
+  const totalPagesRedux = useAppSelector(
     (state) => state?.project?.data?.totalPages
   );
 
   const isLoadingProjectRedux = !projectRedux || !projectRedux;
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [searchInput, setsearchInput] = useState("");
 
   // pagination
@@ -82,25 +85,15 @@ export default function Dashboard() {
             New Project
           </button>
         </div>
+        {/* TO SHOW SEACH INPUT AND FILTER  */}
+        <SearchFilterBar
+          searchInput={searchInput}
+          setSearchInput={setsearchInput}
+          status={status}
+          setStatus={setStatus}
+        />
 
-        <div className="mb-6 flex flex-row justify-between items-center gap-4">
-          <div className="relative flex-1">
-            {" "}
-            {/* ✅ flex-1 so it expands */}
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search Projects by title"
-              className="w-full border pl-10 py-3 bg-white shadow-lg border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={(e) => setsearchInput(e?.target?.value)}
-            />
-          </div>
-
-          <div className="p-4">
-            <StatusFilter value={status} onChange={setStatus} />
-          </div>
-        </div>
-
+        {/* SHOW SKELTON UI  */}
         {isLoadingProjectRedux ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
@@ -110,30 +103,36 @@ export default function Dashboard() {
             </div>
           </>
         ) : projectRedux && projectRedux.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Plus className="w-8 h-8 text-gray-400" />
+          <>
+            {/* SHOW SKELTON UI  */}
+            <div className="text-center py-12">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Plus className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No projects found
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Get started by creating your first project
+              </p>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No projects found
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Get started by creating your first project
-            </p>
-          </div>
+          </>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
             {projectRedux.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                setprojectEditDetails={setprojectEditDetails}
-                setIsOpenEditModal={setIsOpenEditModal}
-              />
+              <>
+                {/* If length is > 0 then show Project Cards  */}
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  setprojectEditDetails={setprojectEditDetails}
+                  setIsOpenEditModal={setIsOpenEditModal}
+                />
+              </>
             ))}
           </div>
         )}
-
+        {/* Projects Pagination */}
         <div className="mt-5">
           <Pagination
             currentPage={currentPage}
@@ -144,7 +143,7 @@ export default function Dashboard() {
             pageSize={pageSize}
           />
         </div>
-
+        {/* MODAL -  To Create and Edit a Project Modal Will Open */}
         <NewProject
           isOpenEditModal={isOpenEditModal}
           setIsOpenEditModal={setIsOpenEditModal}

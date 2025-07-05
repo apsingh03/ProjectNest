@@ -1,37 +1,40 @@
-import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Modal from "./Modal";
-import { useDispatch } from "react-redux";
-
+import type { FormikHelpers } from "formik";
+import type { TaskEditDetails } from "../utils/types";
 import { createTaskAsync, updateTaskAsync } from "../Redux/Slices/TaskSlice";
-
-interface TaskEditDetails {
-  id: string | null;
-  title: string | null;
-  description: string | null;
-  status: string | null;
-  dueDate: string | null;
-}
+import { useAppDispatch } from "../Hooks/hooks";
 
 interface NewTaskProps {
   isOpenModal: boolean;
   isOpenTaskEditModal: boolean;
   setIsOpenModal: (isOpen: boolean) => void;
   setIsOpenTaskEditModal: (isOpen: boolean) => void;
+  setIsOpenEditModal: (isOpen: boolean) => void;
   projectId: number;
   taskEditDetails: TaskEditDetails;
 }
+
+type TaskFormValues = {
+  id?: number; // only for edit
+  projectId?: number; // always needed to create
+  title: string;
+  description: string;
+  status: string;
+  dueDate: string;
+};
 
 const NewTask = ({
   isOpenModal,
   setIsOpenModal,
   isOpenTaskEditModal,
   setIsOpenTaskEditModal,
+  setIsOpenEditModal,
   projectId,
   taskEditDetails,
 }: NewTaskProps) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const TaskSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
@@ -40,79 +43,104 @@ const NewTask = ({
     dueDate: Yup.string().required("Date is required"),
   });
 
-  const handleSubmit = async (values: any, { setSubmitting }) => {
-    // console.log("SUbmit ", values);
-    setSubmitting(true);
-    // console.log(projectId, values);
-    const res = await dispatch(
-      createTaskAsync({
-        title: values?.title,
-        description: values?.description,
-        status: values?.status,
-        projectId: projectId,
-        dueDate: values.dueDate,
-      })
-    );
+  const handleSubmit = async (
+    values: TaskFormValues,
+    { setSubmitting }: FormikHelpers<TaskFormValues>
+  ) => {
+    try {
+      // console.log("SUbmit ", values);
+      setSubmitting(true);
+      // console.log(projectId, values);
+      const res = await dispatch(
+        createTaskAsync({
+          title: values?.title,
+          description: values?.description,
+          status: values?.status,
+          projectId: projectId,
+          dueDate: values.dueDate,
+        })
+      );
 
-    // console.log("res - ", res);
+      // console.log("res - ", res);
 
-    const { msg } = res?.payload;
-    if (msg && msg === "Name Already Exist") {
-      alert(msg);
-      values.title = "";
+      if (res?.payload) {
+        const { msg } = res.payload;
+        if (msg && msg === "Name Already Exist") {
+          alert(msg);
+          values.title = "";
+        }
+
+        if (msg && msg === "success") {
+          alert(msg);
+          values.title = "";
+          values.description = "";
+          values.status = "";
+          values.dueDate = "";
+        }
+      }
+      setIsOpenModal(false);
+      setSubmitting(false);
+    } catch (error: any) {
+      console.error("Error handleSubmitTask ", error);
     }
-
-    if (msg && msg === "success") {
-      alert(msg);
-      values.title = "";
-      values.description = "";
-      values.status = "";
-      values.dueDate = "";
-    }
-    setIsOpenModal(false);
-    setSubmitting(false);
   };
 
-  const handleEdit = async (values: any, { setSubmitting }) => {
-    // console.log("SUbmit ", values);
-    setSubmitting(true);
-    const res = await dispatch(
-      updateTaskAsync({
-        id: taskEditDetails?.id,
-        title: values?.title,
-        description: values?.description,
-        status: values?.status,
-        dueDate: values.dueDate,
-      })
-    );
+  const handleEdit = async (
+    values: TaskFormValues,
+    { setSubmitting }: FormikHelpers<TaskFormValues>
+  ) => {
+    try {
+      // console.log("SUbmit ", values);
 
-    const { msg } = res?.payload;
-    if (msg && msg === "Name Already Exist") {
-      alert(msg);
-      values.title = "";
-    }
+      if (taskEditDetails?.id == null) {
+        throw new Error("Task ID is missing for edit.");
+      }
 
-    if (msg && msg === "success") {
-      alert(msg);
-      values.title = "";
-      values.description = "";
-      values.status = "";
+      setSubmitting(true);
+      const res = await dispatch(
+        updateTaskAsync({
+          id: Number(taskEditDetails?.id),
+          title: values?.title,
+          description: values?.description,
+          status: values?.status,
+          dueDate: values.dueDate,
+        })
+      );
+
+      if (res?.payload) {
+        const { msg } = res.payload;
+        if (msg && msg === "Name Already Exist") {
+          alert(msg);
+          values.title = "";
+        }
+
+        if (msg && msg === "success") {
+          alert(msg);
+          values.title = "";
+          values.description = "";
+          values.status = "";
+        }
+      }
+      setIsOpenEditModal(false);
+      setIsOpenModal(false);
+      setSubmitting(false);
+    } catch (error: any) {
+      console.error("Error HandleEditTask - ", error);
     }
-    setIsOpenEditModal(false);
-    setIsOpenModal(false);
-    setSubmitting(false);
   };
 
-  function initialValues() {
+  function initialValues(): TaskFormValues {
     if (isOpenTaskEditModal) {
       return {
-        title: taskEditDetails.title,
-        description: taskEditDetails.description,
-        status: taskEditDetails.status,
-        dueDate: taskEditDetails.dueDate,
+        // projectId: Number(selectedProjectId),
+        title: String(taskEditDetails.title),
+        description: String(taskEditDetails.description),
+        status: String(taskEditDetails.status),
+        dueDate: String(taskEditDetails.dueDate),
       };
     } else {
       return {
+        // projectId: Number(selectedProjectId),
         title: "",
         description: "",
         status: "",

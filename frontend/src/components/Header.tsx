@@ -1,10 +1,11 @@
-import React from "react";
 import { LogOut, User, FolderOpen } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useAppSelector } from "../Hooks/hooks";
 
 const Header = () => {
-  const userLoggedData = useSelector((state) => state?.client_auth?.loggedData);
+  const userLoggedData = useAppSelector(
+    (state) => state?.client_auth?.loggedData
+  );
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40">

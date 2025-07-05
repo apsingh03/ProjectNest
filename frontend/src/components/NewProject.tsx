@@ -1,17 +1,15 @@
-import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import Modal from "./Modal";
-import { useDispatch } from "react-redux";
-
-import { createTaskAsync, updateTaskAsync } from "../Redux/Slices/TaskSlice";
+import type { FormikHelpers } from "formik";
 import {
   createProjectAsync,
   updateProjectAsync,
 } from "../Redux/Slices/ProjectManagementSlice";
+import { useAppDispatch } from "../Hooks/hooks";
 
 interface ProjectEditDetails {
-  id: string | null;
+  id: number | null;
   title: string | null;
   description: string | null;
   status: string | null;
@@ -32,7 +30,7 @@ const NewProject = ({
   setIsOpenEditModal,
   projectEditDetails,
 }: NewProjectProps) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const ProjectSchema = Yup.object().shape({
     title: Yup.string().required("Title is required"),
@@ -40,69 +38,98 @@ const NewProject = ({
     status: Yup.string().required("Status is required"),
   });
 
-  const handleSubmit = async (values: any, { setSubmitting }) => {
-    // console.log("SUbmit ", values);
-    setSubmitting(true);
-    const res = await dispatch(
-      createProjectAsync({
-        title: values?.title,
-        description: values?.description,
-        status: values?.status,
-      })
-    );
-
-    const { msg } = res?.payload;
-    if (msg && msg === "Name Already Exist") {
-      alert(msg);
-      values.title = "";
-    }
-
-    if (msg && msg === "success") {
-      alert(msg);
-      values.title = "";
-      values.description = "";
-      values.status = "";
-    }
-
-    setIsOpenModal(false);
-    setSubmitting(false);
+  type CreateProjectPayload = {
+    title: string;
+    description: string;
+    status: string;
   };
 
-  const handleEdit = async (values: any, { setSubmitting }) => {
+  const handleSubmit = async (
+    values: CreateProjectPayload,
+    { setSubmitting }: FormikHelpers<CreateProjectPayload>
+  ) => {
     // console.log("SUbmit ", values);
-    setSubmitting(true);
-    const res = await dispatch(
-      updateProjectAsync({
-        id: projectEditDetails?.id,
-        title: values?.title,
-        description: values?.description,
-        status: values?.status,
-      })
-    );
 
-    const { msg } = res?.payload;
-    if (msg && msg === "Name Already Exist") {
-      alert(msg);
-      values.title = "";
-    }
+    try {
+      setSubmitting(true);
+      const res = await dispatch(
+        createProjectAsync({
+          title: values?.title,
+          description: values?.description,
+          status: values?.status,
+        })
+      );
+      if (res?.payload) {
+        const { msg } = res.payload;
+        if (msg && msg === "Name Already Exist") {
+          alert(msg);
+          values.title = "";
+        }
 
-    if (msg && msg === "success") {
-      alert(msg);
-      values.title = "";
-      values.description = "";
-      values.status = "";
+        if (msg && msg === "success") {
+          alert(msg);
+          values.title = "";
+          values.description = "";
+          values.status = "";
+        }
+      }
+
+      setIsOpenModal(false);
+      setSubmitting(false);
+    } catch (error: any) {
+      console.error("Error handleSubmitProject - ", error);
     }
-    setIsOpenEditModal(false);
-    setIsOpenModal(false);
-    setSubmitting(false);
   };
 
-  function initialValues() {
+  const handleEdit = async (
+    values: ProjectFormValues,
+    { setSubmitting }: FormikHelpers<ProjectFormValues>
+  ) => {
+    // console.log("SUbmit ", values);
+
+    try {
+      if (projectEditDetails?.id == null) {
+        throw new Error("Project ID is missing.");
+      }
+
+      setSubmitting(true);
+      const res = await dispatch(
+        updateProjectAsync({
+          id: projectEditDetails.id!, // The `!` says “trust me, not null”
+          title: values?.title,
+          description: values?.description,
+          status: values?.status,
+        })
+      );
+
+      if (res?.payload) {
+        const { msg } = res.payload;
+        if (msg && msg === "Name Already Exist") {
+          alert(msg);
+          values.title = "";
+        }
+
+        if (msg && msg === "success") {
+          alert(msg);
+          values.title = "";
+          values.description = "";
+          values.status = "";
+        }
+      }
+      setIsOpenEditModal(false);
+      setIsOpenModal(false);
+      setSubmitting(false);
+    } catch (error: any) {
+      console.error("Error handleEditProject ", error);
+    }
+  };
+
+  function initialValues(): CreateProjectPayload {
     if (isOpenEditModal) {
       return {
-        title: projectEditDetails.title,
-        description: projectEditDetails.description,
-        status: projectEditDetails.status,
+        title: projectEditDetails.title ?? "",
+        description: projectEditDetails.description ?? "",
+        status: projectEditDetails.status ?? "",
       };
     } else {
       return {
@@ -112,6 +139,12 @@ const NewProject = ({
       };
     }
   }
+  type ProjectFormValues = {
+    id?: number; // optional!
+    title: string;
+    description: string;
+    status: string;
+  };
 
   return (
     <Modal
@@ -120,7 +153,7 @@ const NewProject = ({
       setIsOpenEditModal={setIsOpenEditModal}
       title={isOpenEditModal ? "Edit Project" : "Create New Project"}
     >
-      <Formik
+      <Formik<ProjectFormValues>
         initialValues={initialValues()}
         validationSchema={ProjectSchema}
         onSubmit={isOpenEditModal ? handleEdit : handleSubmit}

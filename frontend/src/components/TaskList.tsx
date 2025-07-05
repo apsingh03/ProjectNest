@@ -1,49 +1,44 @@
 import React, { useState } from "react";
-import { format, previousDay } from "date-fns";
+import { format } from "date-fns";
 import ActionsMenu from "./ActionMenu";
-import { useDispatch } from "react-redux";
+
 import { deleteTaskAsync } from "../Redux/Slices/TaskSlice";
 import { MoreVertical } from "lucide-react";
-interface Task {
-  id: number;
-  title: string;
-  description: string;
-  status: "Completed" | "In-Progress" | "Pending";
-  dueDate?: string; // optional
-}
+import { useAppDispatch } from "../Hooks/hooks";
 
-interface TaskEditDetails {
-  id: number | null;
-  title: string | null;
-  description: string | null;
-  status: string | null;
-}
+import type { Task, TaskEditDetails } from "../utils/types";
 
 interface TaskListProps {
   tasks: Task[];
-  isOpenTaskEditModal: boolean;
+  // isOpenTaskEditModal: boolean;
   setIsOpenTaskEditModal: (isOpen: boolean) => void;
   settaskEditDetails: React.Dispatch<React.SetStateAction<TaskEditDetails>>;
 }
 
 const TaskList: React.FC<TaskListProps> = ({
   tasks,
-  isOpenTaskEditModal,
+  // isOpenTaskEditModal,
   setIsOpenTaskEditModal,
   settaskEditDetails,
 }) => {
-  const [showMenu, setShowMenu] = useState(false);
+  const [_showMenu, setShowMenu] = useState(false);
 
-  const [whichTaskMenu, setwhichTaskMenu] = useState({ id: null });
+  const [whichTaskMenu, setwhichTaskMenu] = useState<{ id: number | null }>({
+    id: null,
+  });
 
-  const [selectedProjectId, setselectedProjectId] = useState(null);
+  const [selectedProjectId, setselectedProjectId] = useState<number | null>(
+    null
+  );
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  const handleDeleteTask = async (id) => {
+  const handleDeleteTask = async (id: number) => {
     try {
       if (window.confirm("Do you want to Delete Task ")) {
-        await dispatch(deleteTaskAsync({ id, projectId: selectedProjectId }));
+        await dispatch(
+          deleteTaskAsync({ id, projectId: Number(selectedProjectId) })
+        );
       }
     } catch (error) {
       console.log("Error - ", error);
@@ -51,7 +46,13 @@ const TaskList: React.FC<TaskListProps> = ({
     setShowMenu(false);
   };
 
-  const handleEditTask = async (id, title, description, status) => {
+  const handleEditTask = async (
+    id: number,
+    title: string,
+    description: string,
+    status: string,
+    dueDate?: string
+  ) => {
     try {
       setIsOpenTaskEditModal(true);
 
@@ -60,13 +61,14 @@ const TaskList: React.FC<TaskListProps> = ({
         title,
         description,
         status,
+        dueDate,
       });
     } catch (error) {
       console.log("Error - ", error);
     }
     setShowMenu(false);
   };
-
+  // console.log("tasks - ", tasks[0]);
   return (
     <div className="max-w-3xl mx-auto ">
       <h6 className="text-xl font-bold mb-4">Tasks</h6>
@@ -118,7 +120,10 @@ const TaskList: React.FC<TaskListProps> = ({
                   )}
                 </div>
               </div>
-              <p className="text-gray-600 mb-2" title="Task Description">
+              <p
+                className="text-gray-600 mb-2 line-clamp-1 "
+                title="Task Description"
+              >
                 {task.description}
               </p>
               <p className="text-sm text-gray-500" title="Task Due Date">

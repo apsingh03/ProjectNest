@@ -1,6 +1,6 @@
-import { ReactNode, useEffect } from "react";
+import type { ReactNode } from "react";
 
-import { X, Vote, Users } from "lucide-react";
+import { X, Vote } from "lucide-react";
 
 interface ModalProps {
   children: ReactNode;

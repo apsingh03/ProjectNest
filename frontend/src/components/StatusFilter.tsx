@@ -1,13 +1,17 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Filter } from "lucide-react";
 import { filterByStatusProjects } from "../Redux/Slices/ProjectManagementSlice";
-import { useDispatch } from "react-redux";
 
-export default function StatusFilter({ value, onChange }) {
+import { useAppDispatch } from "../Hooks/hooks";
+interface StatusFilterProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+export default function StatusFilter({ value, onChange }: StatusFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
-  function handleFilterOnClick(status) {
+  function handleFilterOnClick(status: string) {
     // console.log("handleFilterOnClick -  ", status);
     dispatch(filterByStatusProjects(status));
     onChange(status);

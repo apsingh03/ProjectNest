@@ -1,14 +1,15 @@
 "use client";
-import Cookies from "js-cookie";
+
 import { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { LogIn, UserPlus } from "lucide-react";
-import { useDispatch } from "react-redux";
+import type { FormikHelpers } from "formik";
 import {
   createClientAsync,
   loginClientAsync,
 } from "../Redux/Slices/UserAuthSlice";
+import { useAppDispatch } from "../Hooks/hooks";
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string().email("Invalid email").required("Email is required"),
@@ -25,12 +26,17 @@ const RegisterSchema = Yup.object().shape({
 });
 
 export default function Authentication() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [isLogin, setIsLogin] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState(""); // fake error message
-
-  const getInitialValues = () => {
+  // const [showPassword, setShowPassword] = useState(false);
+  const [error, _setError] = useState(""); // fake error message
+  type AuthFormValues = {
+    email: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+  };
+  const getInitialValues = (): AuthFormValues => {
     if (isLogin) {
       return { email: "test@example.com", password: "Test@123" };
     } else {
@@ -38,40 +44,53 @@ export default function Authentication() {
     }
   };
 
-  const handleSignUpSubmit = async (values, { setSubmitting }) => {
-    const fullName = values?.firstName + values?.lastName;
-    const actionResult = await dispatch(
-      createClientAsync({
-        email: values?.email,
-        fullName: fullName,
-        password: values?.password,
-      })
-    );
+  const handleSignUpSubmit = async (
+    values: AuthFormValues,
+    { setSubmitting }: FormikHelpers<AuthFormValues>
+  ) => {
+    try {
+      if (!values.firstName || !values.lastName) {
+        throw new Error("First name and last name are required for signup.");
+      }
+      const fullName = values?.firstName + values?.lastName;
+      const actionResult = await dispatch(
+        createClientAsync({
+          email: values?.email,
+          fullName: fullName,
+          password: values?.password,
+        })
+      );
 
-    if (actionResult.payload.msg === "Sign Up Successful") {
-      // toast.success(actionResult.payload.msg);
-      values.firstName = "";
-      values.lastName = "";
-      values.email = "";
-      values.password = "";
-      alert(actionResult.payload.msg);
-      // setisLoadingTopProgress(100);
-      setSubmitting(false);
-      setIsLogin(true);
-      // navigate("/signin");
-    }
+      if (actionResult.payload.msg === "Sign Up Successful") {
+        // toast.success(actionResult.payload.msg);
+        values.firstName = "";
+        values.lastName = "";
+        values.email = "";
+        values.password = "";
+        alert(actionResult.payload.msg);
+        // setisLoadingTopProgress(100);
+        setSubmitting(false);
+        setIsLogin(true);
+        // navigate("/signin");
+      }
 
-    if (actionResult.payload.msg === "Email Already Exist") {
-      values.email = "";
-      setSubmitting(false);
-      // setisLoadingTopProgress(100);
-      // toast.error(actionResult.payload.msg);
-      // setSignUpErrors({ email: actionResult.payload.msg });
-      alert(actionResult.payload.msg);
+      if (actionResult.payload.msg === "Email Already Exist") {
+        values.email = "";
+        setSubmitting(false);
+        // setisLoadingTopProgress(100);
+        // toast.error(actionResult.payload.msg);
+        // setSignUpErrors({ email: actionResult.payload.msg });
+        alert(actionResult.payload.msg);
+      }
+    } catch (error: any) {
+      console.log("Error handleSignUpSubmit", error);
     }
   };
 
-  const handleLoginSubmit = async (values, { setSubmitting }) => {
+  const handleLoginSubmit = async (
+    values: AuthFormValues,
+    { setSubmitting }: FormikHelpers<AuthFormValues>
+  ) => {
     try {
       // console.log("values - ", values);
       // setisLoadingTopProgress(20);
@@ -87,6 +106,7 @@ export default function Authentication() {
         // setlogInEmailError(actionResult.payload.msg);
         alert(actionResult.payload?.msg);
         values.email = "";
+        setSubmitting(false);
       }
 
       if (actionResult.payload?.msg === "Password Wrong") {
@@ -94,9 +114,11 @@ export default function Authentication() {
         // setlogInPasswordError(actionResult.payload.msg);
         alert(actionResult.payload.msg);
         values.password = "";
+        setSubmitting(false);
       }
 
       if (actionResult.payload?.msg === "Logged In Successfull") {
+        setSubmitting(false);
         values.email = "";
         values.password = "";
         alert(actionResult.payload?.msg);
@@ -108,8 +130,8 @@ export default function Authentication() {
 
       // setisLoadingTopProgress(100);
       // console.log("actionResult - ", actionResult);
-    } catch (error) {
-      console.log("Error client login ", error?.message);
+    } catch (error: any) {
+      console.log("Error client login ", error);
     }
   };
 

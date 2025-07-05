@@ -10,14 +10,6 @@ interface UserDetails {
   email: string;
 }
 
-interface AuthState {
-  userDetails: UserDetails | null;
-  isLoading: boolean;
-  isError: boolean;
-
-  data?: any; // If you have generic data, you can type it better later
-}
-
 const HOSTNAME = import.meta.env.VITE_BACKENDHOSTNAME;
 const clientLoggedToken = localStorage.getItem("clientLoggedToken");
 
@@ -72,36 +64,50 @@ export const getLoggedOutAsync = createAsyncThunk(
   }
 );
 
+interface ClientJwtPayload {
+  isUserLogged: boolean;
+  id: string;
+  fullName: string;
+  email: string;
+}
+
+interface LoggedData {
+  isUserLogged: boolean;
+  id: string | null;
+  fullName: string | null;
+  email: string | null;
+}
+
+interface AuthState {
+  userDetails: UserDetails | null;
+  isLoading: boolean;
+  isError: boolean;
+  data?: any;
+  loggedData: LoggedData;
+}
+
+const token = localStorage.getItem("clientLoggedToken");
+
+let decoded: ClientJwtPayload | null = null;
+if (token) {
+  decoded = jwtDecode<ClientJwtPayload>(token);
+}
 const initialState: AuthState = {
   userDetails: null,
   isLoading: false,
   isError: false,
   loggedData: {
-    isUserLogged:
-      localStorage.getItem("clientLoggedToken") !== null
-        ? jwtDecode(localStorage.getItem("clientLoggedToken")).isUserLogged
-        : false,
-    id:
-      localStorage.getItem("clientLoggedToken") !== null
-        ? jwtDecode(localStorage.getItem("clientLoggedToken")).id
-        : null,
-    fullName:
-      localStorage.getItem("clientLoggedToken") !== null
-        ? jwtDecode(localStorage.getItem("clientLoggedToken")).fullName
-        : null,
-    email:
-      localStorage.getItem("clientLoggedToken") !== null
-        ? jwtDecode(localStorage.getItem("clientLoggedToken")).email
-        : null,
+    isUserLogged: decoded?.isUserLogged ?? false,
+    id: decoded?.id ?? null,
+    fullName: decoded?.fullName ?? null,
+    email: decoded?.email ?? null,
   },
 };
 
 export const userAuthSlice = createSlice({
   name: "clientAuth",
   initialState,
-  reducers: {
-    logOut: {},
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
 
@@ -140,7 +146,10 @@ export const userAuthSlice = createSlice({
       })
       .addCase(
         getLoggedInfoAsync.fulfilled,
-        (state, action: PayloadAction<UserDetails>) => {
+        (
+          state,
+          action: PayloadAction<{ msg: string; userObject: UserDetails }>
+        ) => {
           state.isLoading = false;
           // console.log("getLoggedInfoAsync - ", action.payload);
           const { msg, userObject } = action.payload;
@@ -154,14 +163,11 @@ export const userAuthSlice = createSlice({
       .addCase(getLoggedOutAsync.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(
-        getLoggedOutAsync.fulfilled,
-        (state, action: PayloadAction<UserDetails>) => {
-          state.isLoading = false;
-          state.userDetails = null;
-          // console.log(action.payload);
-        }
-      )
+      .addCase(getLoggedOutAsync.fulfilled, (state) => {
+        state.isLoading = false;
+        state.userDetails = null;
+        // console.log(action.payload);
+      })
       .addCase(getLoggedOutAsync.rejected, (state) => {
         state.isLoading = false;
         state.isError = true;

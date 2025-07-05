@@ -4,7 +4,7 @@
 backend/node_modules
 backend/.env
 backend/steps.txt
-
+backend/dist
 
 #android app
 
