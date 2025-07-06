@@ -6,22 +6,37 @@ import {
   UserAuth,
 } from "../../models";
 
-export const createProject = async (req: Request, res: Response) => {
+import { Request, Response } from "express-serve-static-core";
+
+interface ProjectBody {
+  title: string;
+  description: string;
+  status: string;
+}
+export const createProject = async (
+  req: Request<{}, {}, ProjectBody>,
+  res: Response
+): Promise<void> => {
   const t = await sequelize.transaction();
   try {
     const devId = req?.user?.id;
-    const payload = { ...req.body, devId };
+    const payload = {
+      title: req.body.title,
+      description: req.body.description,
+      status: req.body.status,
+      devId: req.user.id,
+    };
 
     const nameAlreadyExist = await ProjectManagement.findOne({
-      where: { title: req.body.title, devId },
+      where: { title: req.body.title, devId: devId },
       transaction: t,
     });
 
     if (nameAlreadyExist) {
       await t.rollback();
-      return res.status(200).send({ msg: "Name Already Exist" });
+      res.status(200).send({ msg: "Name Already Exist" });
     } else {
-      console.log("createProject Req.body - ", req.body);
+      // console.log("createProject Req.body - ", req.body);
       const createQuery = await ProjectManagement.create(payload, {
         transaction: t,
       });
@@ -31,16 +46,20 @@ export const createProject = async (req: Request, res: Response) => {
         transaction: t,
       });
       await t.commit();
-      return res.status(200).send({ msg: "success", query: updatedQuery });
+      res.status(200).send({ msg: "success", query: updatedQuery });
     }
-  } catch (error) {
+  } catch (error: any) {
     // await t.rollback();
     console.error("Error - ", error);
-    return res.status(500).send({ error: error.message });
+    res.status(500).send({ error: error.message });
   }
 };
-
-export const getProject = async (req: Request, res: Response) => {
+// Request<Params, ResBody, ReqBody>
+// Request<ParamsDictionary, ResBody, ReqBody, ReqQuery>;
+export const getProject = async (
+  req: Request<{}, {}, {}, { page: string; pageSize: string }>,
+  res: Response
+): Promise<void> => {
   try {
     const page = parseInt(req.query.page);
     const itemsPerPage = parseInt(req.query.pageSize);
@@ -74,15 +93,18 @@ export const getProject = async (req: Request, res: Response) => {
 
     const totalPages = Math.ceil(query.count / itemsPerPage);
     // console.log("query - ", query.count, totalPages);
-    return res
+    res
       .status(200)
       .send({ msg: "success", query: query.rows, totalPages: totalPages });
-  } catch (error) {
-    return res.status(500).send({ error: error.message });
+  } catch (error: any) {
+    res.status(500).send({ error: error.message });
   }
 };
 
-export const updateProject = async (req: Request, res: Response) => {
+export const updateProject = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const t = await sequelize.transaction();
   try {
     // console.log("----------- updateProject");
@@ -96,7 +118,7 @@ export const updateProject = async (req: Request, res: Response) => {
 
     if (nameAlreadyExist) {
       await t.rollback();
-      return res.status(200).send({ msg: "Name Already Exist" });
+      res.status(200).send({ msg: "Name Already Exist" });
     } else {
       const [updated] = await ProjectManagement.update(
         {
@@ -119,19 +141,22 @@ export const updateProject = async (req: Request, res: Response) => {
           where: { id: req.params.id, devId: devId },
         });
 
-        return res.status(200).send({ msg: "success", query });
+        res.status(200).send({ msg: "success", query });
       } else {
         await t.rollback();
-        return res.status(404).send({ msg: "Record not found" });
+        res.status(404).send({ msg: "Record not found" });
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     await t.rollback();
-    return res.status(500).send({ error: error.message });
+    res.status(500).send({ error: error.message });
   }
 };
 
-export const deleteProject = async (req: Request, res: Response) => {
+export const deleteProject = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const t = await sequelize.transaction();
   try {
     const devId = req?.user?.id;
@@ -146,14 +171,14 @@ export const deleteProject = async (req: Request, res: Response) => {
 
     if (query === 0) {
       await t.rollback();
-      return res.status(404).send({ msg: "Record not found" });
+      res.status(404).send({ msg: "Record not found" });
     }
 
     // console.log("query Delete - ", query);
     await t.commit();
-    return res.status(200).send({ msg: "success" });
-  } catch (error) {
+    res.status(200).send({ msg: "success" });
+  } catch (error: any) {
     await t.rollback();
-    return res.status(500).send({ error: error.message });
+    res.status(500).send({ error: error.message });
   }
 };

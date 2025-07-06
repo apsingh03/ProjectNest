@@ -3,7 +3,6 @@ import {
   clientSignUp,
   clientLogIn,
   clientLoggedInfo,
-  clientLogout,
 } from "../../controller/User/UserController";
 import { authenticateUser } from "../../middlewares/UserAuthMiddleware";
 const router = Router();

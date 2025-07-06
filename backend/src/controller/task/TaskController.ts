@@ -1,10 +1,21 @@
 import { sequelize, Sequelize, Task, UserAuth } from "../../models";
+import { Request, Response } from "express-serve-static-core";
 
-export const createTask = async (req: Request, res: Response) => {
+interface TaskBody {
+  title: string;
+  description: string;
+  status: string;
+  dueDate: Date;
+  projectId: number;
+}
+export const createTask = async (
+  req: Request<{}, {}, TaskBody>,
+  res: Response
+): Promise<void> => {
   const t = await sequelize.transaction();
   try {
     // 	id	title	description	status	dueDate	createdAt	updatedAt	devId	projectId
-    console.log("req.body - ", req.body);
+    // console.log("req.body - ", req.body);
     const devId = req?.user?.id;
 
     const { title, description, status, dueDate, projectId } = req.body;
@@ -16,7 +27,7 @@ export const createTask = async (req: Request, res: Response) => {
 
     if (nameAlreadyExist) {
       await t.rollback();
-      return res.status(200).send({ msg: "Name Already Exist" });
+      res.status(200).send({ msg: "Name Already Exist" });
     } else {
       // console.log("Req.body - ", req.body);
       const createQuery = await Task.create(
@@ -38,16 +49,19 @@ export const createTask = async (req: Request, res: Response) => {
       });
       await t.commit();
 
-      return res.status(200).send({ msg: "success", query: updatedQuery });
+      res.status(200).send({ msg: "success", query: updatedQuery });
     }
-  } catch (error) {
+  } catch (error: any) {
     // await t.rollback();
     console.error("Error - ", error);
-    return res.status(500).send({ error: error.message });
+    res.status(500).send({ error: error.message });
   }
 };
 
-export const getTask = async (req: Request, res: Response) => {
+export const getTask = async (
+  req: Request<{}, {}, {}, { page: string; pageSize: string }>,
+  res: Response
+): Promise<void> => {
   try {
     const page = parseInt(req.query.page);
     const itemsPerPage = parseInt(req.query.pageSize);
@@ -72,15 +86,18 @@ export const getTask = async (req: Request, res: Response) => {
 
     const totalPages = Math.ceil(query.count / itemsPerPage);
     // console.log("query - ", query.count, totalPages);
-    return res
+    res
       .status(200)
       .send({ msg: "success", query: query.rows, totalPages: totalPages });
-  } catch (error) {
-    return res.status(500).send({ error: error.message });
+  } catch (error: any) {
+    res.status(500).send({ error: error.message });
   }
 };
 
-export const updateTask = async (req: Request, res: Response) => {
+export const updateTask = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const t = await sequelize.transaction();
   try {
     // console.log("----------- updateProject");
@@ -94,7 +111,7 @@ export const updateTask = async (req: Request, res: Response) => {
 
     if (nameAlreadyExist) {
       await t.rollback();
-      return res.status(200).send({ msg: "Name Already Exist" });
+      res.status(200).send({ msg: "Name Already Exist" });
     } else {
       const [updated] = await Task.update(
         {
@@ -118,19 +135,22 @@ export const updateTask = async (req: Request, res: Response) => {
           where: { id: req.params.id, devId: devId },
         });
 
-        return res.status(200).send({ msg: "success", query });
+        res.status(200).send({ msg: "success", query });
       } else {
         await t.rollback();
-        return res.status(404).send({ msg: "Record not found" });
+        res.status(404).send({ msg: "Record not found" });
       }
     }
-  } catch (error) {
+  } catch (error: any) {
     await t.rollback();
-    return res.status(500).send({ error: error.message });
+    res.status(500).send({ error: error.message });
   }
 };
 
-export const deleteTask = async (req: Request, res: Response) => {
+export const deleteTask = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const t = await sequelize.transaction();
   try {
     const devId = req?.user?.id;
@@ -145,18 +165,18 @@ export const deleteTask = async (req: Request, res: Response) => {
 
     if (query === 0) {
       await t.rollback();
-      return res.status(404).send({ msg: "Record not found" });
+      res.status(404).send({ msg: "Record not found" });
     }
 
     // console.log("query Delete - ", query);
     await t.commit();
-    return res.status(200).send({
+    res.status(200).send({
       msg: "success",
       taskId: req.params.id,
       projectId: req.params.projectId,
     });
-  } catch (error) {
+  } catch (error: any) {
     await t.rollback();
-    return res.status(500).send({ error: error.message });
+    res.status(500).send({ error: error.message });
   }
 };

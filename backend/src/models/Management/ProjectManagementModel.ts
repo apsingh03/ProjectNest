@@ -1,22 +1,20 @@
 import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 
-
 interface ProjectManagementAttributes {
   id: number;
   title: string;
   description: string;
   status: string;
+  devId: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
-
 
 interface ProjectManagementCreationAttributes
   extends Optional<
     ProjectManagementAttributes,
     "id" | "createdAt" | "updatedAt"
   > {}
-
 
 export class ProjectManagement
   extends Model<
@@ -30,6 +28,7 @@ export class ProjectManagement
   public title!: string;
   public description!: string;
   public status!: string;
+  public devId!: number;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 }
@@ -62,6 +61,11 @@ export const initProjectManagementModel = (sequelize: Sequelize) => {
       updatedAt: {
         type: DataTypes.DATE,
         allowNull: true,
+      },
+      devId: {
+        //  Define the FK column here too for TS
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
       },
     },
     {

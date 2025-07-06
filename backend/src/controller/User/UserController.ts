@@ -2,38 +2,34 @@ import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserAuth } from "../../models";
+import { MyJwtPayload } from "../../types/express";
 
 const isProduction = process.env.NODE_ENV === "production";
-const cookieSettings = {
-  httpOnly: true,
-  secure: false,
-  sameSite: "strict",
-  path: "/",
-};
+
 export const clientSignUp = async (
-  req: Request,
+  req: Request<{}, {}, { email: string; password: string; fullName: string }>,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
-    console.log("User Req.body - ", req.body);
+    // console.log("User Req.body - ", req.body);
     const emailExistQuery = await UserAuth.findOne({
       where: { email: req.body.email },
     });
-    console.log("-------- 16 ");
+    // console.log("-------- 16 ");
     if (emailExistQuery) {
-      console.log("checjing  an account ");
+      // console.log("checjing  an account ");
       if (emailExistQuery.email === req.body.email) {
-        return res.status(200).send({ msg: "Email Already Exist" });
+        res.status(200).send({ msg: "Email Already Exist" });
       }
     } else {
-      console.log("creating an account ");
+      // console.log("creating an account ");
       const saltRounds = 10;
 
       bcrypt.hash(req.body.password, saltRounds, async function (err, hash) {
         if (err) {
-          console.log("Bcrypt error: ", err);
-          return res.status(500).send({ msg: "Error hashing password" });
+          // console.log("Bcrypt error: ", err);
+          res.status(500).send({ msg: "Error hashing password" });
         }
         const query = await UserAuth.create({
           fullName: req.body.fullName,
@@ -42,23 +38,23 @@ export const clientSignUp = async (
           // createdAt: Date.now(),
         });
 
-        return res.status(200).send({ msg: "Sign Up Successful" });
+        res.status(200).send({ msg: "Sign Up Successful" });
       });
     }
-    console.log("---- 37");
-  } catch (error) {
+    // console.log("---- 37");
+  } catch (error: any) {
     // console.log("createUser Error - ", error);
-    return res.status(500).send({ error: error.message });
+    res.status(500).send({ error: error.message });
   }
 };
 
 export const clientLogIn = async (
-  req: Request,
+  req: Request<{}, {}, { email: string; password: string }>,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
-    console.log(" ------------------   clientLogIn Req - ");
+    // console.log(" ------------------   clientLogIn Req - ");
     const emailExistQuery = await UserAuth.findOne({
       where: { email: req.body.email },
     });
@@ -69,7 +65,7 @@ export const clientLogIn = async (
         emailExistQuery.password,
         function (err, result) {
           if (err) {
-            return res.status(500).send({ msg: "Something went wrong" });
+            res.status(500).send({ msg: "Something went wrong" });
           }
 
           if (result) {
@@ -81,21 +77,21 @@ export const clientLogIn = async (
               email,
             };
 
-            var token = jwt.sign(userObject, process.env.JWT_SECRET_KEY);
+            var token = jwt.sign(userObject, process.env.JWT_SECRET_KEY!);
 
-            return res
+            res
               .status(200)
               .send({ msg: "Logged In Successfull", token, userObject });
           } else {
-            return res.status(200).send({ msg: "Password Wrong" });
+            res.status(200).send({ msg: "Password Wrong" });
           }
         }
       );
     } else {
-      return res.status(200).send({ msg: "Incorrect Email" });
+      res.status(200).send({ msg: "Incorrect Email" });
     }
-  } catch (error) {
-    return res.status(500).send({ error: error.message });
+  } catch (error: any) {
+    res.status(500).send({ error: error.message });
   }
 };
 
@@ -103,29 +99,31 @@ export const clientLoggedInfo = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     const token = req.cookies.token;
 
     if (!token) {
-      return res
-        .status(401)
-        .json({ success: false, error: "No token provided" });
+      res.status(401).json({ success: false, error: "No token provided" });
     }
 
-    const userObject = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const userObject = jwt.verify(
+      token,
+      process.env.JWT_SECRET_KEY!
+    ) as MyJwtPayload;
 
     // console.log("userObject - ", userObject);
+    const userObjectId = userObject.id;
 
-    const user = await UserAuth.findByPk(userObject.id);
+    const user = await UserAuth.findByPk(userObjectId);
 
     if (!user) {
-      return res
+      res
         .status(401)
         .json({ success: false, error: "User Authentication Failed" });
     }
-    return res.status(200).send({ msg: "User Logged In", userObject });
-  } catch (error) {
-    return res.status(500).send({ error: error.message });
+    res.status(200).send({ msg: "User Logged In", userObject });
+  } catch (error: any) {
+    res.status(500).send({ error: error.message });
   }
 };

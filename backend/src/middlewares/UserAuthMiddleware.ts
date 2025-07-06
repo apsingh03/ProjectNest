@@ -1,10 +1,10 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 
 const jwt = require("jsonwebtoken");
 
 import { UserAuth } from "../models";
 
-export const authenticateUser = async (
+export const authenticateUser: RequestHandler = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -17,17 +17,18 @@ export const authenticateUser = async (
     // console.log("userObject - ");
     const query = await UserAuth.findByPk(userObject.id).then((user: any) => {
       if (user === null) {
-        return res
+        res
           .status(401)
           .json({ success: false, error: "User Authentication Failed" });
       } else {
         console.log("Middleware SUCCESS ------  authenticateUser  ");
+        // console.log(userObject);
         req.user = userObject;
         next();
       }
     });
-  } catch (error) {
-    return res.status(401).json({ success: false, error: error.message });
+  } catch (error: any) {
+    res.status(401).json({ success: false, error: error.message });
     // throw new Error(error);
   }
 };

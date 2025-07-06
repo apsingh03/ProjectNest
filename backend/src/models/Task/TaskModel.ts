@@ -9,6 +9,7 @@ interface TaskAttributes {
   devId: number;
   createdAt?: Date;
   updatedAt?: Date;
+  projectId: number;
 }
 
 interface TaskCreationAttributes
@@ -24,7 +25,7 @@ export class Task
   public description!: string;
   public status!: string;
   public devId!: number;
-
+  public projectId!: number;
   public readonly dueDate!: Date;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -34,6 +35,7 @@ export class Task
 export const initTaskModel = (sequelize: Sequelize) => {
   Task.init(
     {
+      //  projectId: number;
       id: {
         type: DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
@@ -53,6 +55,10 @@ export const initTaskModel = (sequelize: Sequelize) => {
       },
       dueDate: {
         type: DataTypes.DATE,
+        allowNull: false,
+      },
+      projectId: {
+        type: DataTypes.INTEGER.UNSIGNED,
         allowNull: false,
       },
       createdAt: {

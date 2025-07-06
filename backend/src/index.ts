@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import cors from "cors";
 import http from "http";
-import cookieParser from "cookie-parser";
+
 import authRoutes from "./routes/user/AuthRoutes";
 import management from "./routes/management/ManagementRoutes";
 import taskRoutes from "./routes/task/TaskRoutes";
@@ -14,7 +14,7 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+
 // CORS
 const corsOptions = {
   origin: process.env.CORS_FRONTEND_ORIGIN || "http://localhost:3000",
