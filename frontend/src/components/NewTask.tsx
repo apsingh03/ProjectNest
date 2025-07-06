@@ -122,6 +122,7 @@ const NewTask = ({
         }
       }
       setIsOpenEditModal(false);
+      setIsOpenTaskEditModal(false);
       setIsOpenModal(false);
       setSubmitting(false);
     } catch (error: any) {

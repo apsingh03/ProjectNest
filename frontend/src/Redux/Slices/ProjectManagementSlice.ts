@@ -57,6 +57,26 @@ export const getProjectAsync = createAsyncThunk<
   }
 });
 
+export const getProjectDetailsAsync = createAsyncThunk(
+  "admin/getProjectDetails",
+
+  async (payload: { id: number }, _thunkAPI) => {
+    try {
+      const { id } = payload;
+      const response = await axios.get(
+        `${HOSTNAME}/project_management/project/${id}`,
+        {
+          headers: { Authorization: `${clientLoggedToken}` },
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      console.log("getProjectDetailsAsync Error - ", error.response);
+    }
+  }
+);
+
 export const updateProjectAsync = createAsyncThunk(
   "admin/updateProject",
 
@@ -153,6 +173,9 @@ type ProjectState = {
     query: Project[]; // or Project[]
     totalPages: number;
   };
+  projectDetails: {
+    query: Project | null;
+  };
   isLoading: boolean;
   isError: boolean;
 };
@@ -161,6 +184,9 @@ const initialState: ProjectState = {
   data: {
     query: [],
     totalPages: 0,
+  },
+  projectDetails: {
+    query: null,
   },
   isLoading: false,
   isError: false,
@@ -227,6 +253,24 @@ export const projectSlice = createSlice({
       })
 
       .addCase(getProjectAsync.rejected, (state) => {
+        state.isLoading = false;
+        state.isError = true;
+      })
+      .addCase(getProjectDetailsAsync.pending, (state) => {
+        state.isLoading = true;
+      })
+
+      .addCase(getProjectDetailsAsync.fulfilled, (state, action) => {
+        state.isLoading = false;
+        // console.log("getProjectDetailsAsync Case , ", action.payload.query);
+        if (action.payload?.query) {
+          state.projectDetails = {
+            query: action.payload.query,
+          };
+        }
+      })
+
+      .addCase(getProjectDetailsAsync.rejected, (state) => {
         state.isLoading = false;
         state.isError = true;
       })

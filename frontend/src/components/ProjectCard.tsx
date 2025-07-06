@@ -1,5 +1,5 @@
 "use client";
-
+import React from "react";
 import { useState } from "react";
 
 import { MoreVertical, Calendar } from "lucide-react";
@@ -36,7 +36,7 @@ interface ProjectCardProps {
     React.SetStateAction<ProjectEditDetailsPropTypes>
   >;
 }
-export default function ProjectCard({
+function ProjectCard({
   project,
   setIsOpenEditModal,
   setprojectEditDetails,
@@ -100,7 +100,7 @@ export default function ProjectCard({
       <div className=" p-6 hover:shadow-lg transition-shadow duration-200  bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden ">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <Link to={`/projects/${project.id}`} className="group">
+            <Link to={`/projectDetail/${project.id}/`} className="group">
               <h3
                 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600 transition-colors cursor-pointer"
                 title="Project Title"
@@ -199,3 +199,5 @@ export default function ProjectCard({
     </>
   );
 }
+
+export default React.memo(ProjectCard);

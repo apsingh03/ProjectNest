@@ -101,6 +101,41 @@ export const getProject = async (
   }
 };
 
+export const getProjectDetails = async (
+  req: Request<{ id: number }, {}, {}>,
+  res: Response
+): Promise<void> => {
+  try {
+    // console.log("getProjectDetails");
+    const devId = req?.user?.id;
+    const projectId = req.params.id;
+    // console.log(devId, projectId);
+    const query = await ProjectManagement.findOne({
+      include: [
+        {
+          model: UserAuth,
+          as: "UserAuth",
+          attributes: {
+            exclude: ["updatedAt", "password"],
+          },
+        },
+        {
+          model: Task,
+          as: "projectTask",
+          required: false,
+          attributes: { exclude: ["updatedAt", "password"] },
+          where: { devId: devId },
+        },
+      ],
+      where: { devId: devId, id: projectId },
+    });
+
+    res.status(200).send({ msg: "success", query: query });
+  } catch (error: any) {
+    res.status(500).send({ error: error.message });
+  }
+};
+
 export const updateProject = async (
   req: Request,
   res: Response
